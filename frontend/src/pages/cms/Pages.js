@@ -5,7 +5,7 @@ import { Plus, Search, Globe, Edit, Trash2, Eye, Home, MoreHorizontal, Layers, P
 import { useTenant } from '../../contexts/TenantContext';
 import api from '../../services/api';
 import { format } from 'date-fns';
-import SiteConfigurationWidget from '../cms/SiteConfigurationWidget';
+import SiteConfigurationWidget from '../../components/cms/SiteConfigurationWidget';
 
 const Pages = () => {
   const { translateTerm, getColorScheme, getModuleInfo } = useTenant();
