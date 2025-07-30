@@ -366,8 +366,12 @@ def require_role(required_roles: List[UserRole]):
 # Authentication routes
 @api_router.post("/auth/register", response_model=Token)
 async def register_user(user_data: UserCreate, tenant_subdomain: str):
-    # Find tenant by subdomain
-    tenant = await db.tenants.find_one({"subdomain": tenant_subdomain})
+    """Register new user using identity kernel"""
+    core = await get_platform_core(db)
+    identity_kernel = core.get_kernel('identity')
+    
+    # Find tenant
+    tenant = await identity_kernel.get_tenant_by_subdomain(tenant_subdomain)
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
     
@@ -376,43 +380,53 @@ async def register_user(user_data: UserCreate, tenant_subdomain: str):
     if existing_user:
         raise HTTPException(status_code=400, detail="User already registered")
     
-    # Create user
-    hashed_password = get_password_hash(user_data.password)
+    # Create user using identity kernel
     user_dict = user_data.dict()
-    user_dict.pop("password")
-    user_dict["tenant_id"] = tenant["id"]
+    password = user_dict.pop("password")
+    user_dict["id"] = str(uuid.uuid4())
     
-    user = User(**user_dict)
-    await db.users.insert_one(user.dict())
-    await db.user_passwords.insert_one({"user_id": user.id, "hashed_password": hashed_password})
+    created_user = await identity_kernel.create_user(tenant["id"], user_dict, password)
     
-    # Create token
-    access_token = create_access_token(data={"sub": user.id})
-    return Token(access_token=access_token, user=user)
+    # Create access token
+    access_token = await identity_kernel.create_access_token(
+        created_user["id"], 
+        timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    
+    # Get module and translate response
+    user_response = await core.translate_response(tenant["id"], created_user)
+    
+    return Token(access_token=access_token, user=User(**user_response))
 
 @api_router.post("/auth/login", response_model=Token)
 async def login_user(user_data: UserLogin, tenant_subdomain: str):
-    # Find tenant
-    tenant = await db.tenants.find_one({"subdomain": tenant_subdomain})
-    if not tenant:
-        raise HTTPException(status_code=404, detail="Tenant not found")
+    """Login user using identity kernel"""
+    core = await get_platform_core(db)
+    identity_kernel = core.get_kernel('identity')
     
-    # Find user
-    user = await db.users.find_one({"email": user_data.email, "tenant_id": tenant["id"]})
-    if not user:
+    # Authenticate user
+    auth_result = await identity_kernel.authenticate_user(
+        tenant_subdomain, 
+        user_data.email, 
+        user_data.password
+    )
+    
+    if not auth_result:
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
-    # Verify password
-    password_doc = await db.user_passwords.find_one({"user_id": user["id"]})
-    if not password_doc or not verify_password(user_data.password, password_doc["hashed_password"]):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+    user_info = auth_result
+    tenant_info = auth_result["tenant"]
     
-    # Update last login
-    await db.users.update_one({"id": user["id"]}, {"$set": {"last_login": datetime.utcnow()}})
+    # Create access token
+    access_token = await identity_kernel.create_access_token(
+        user_info["id"],
+        timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
     
-    user_obj = User(**user)
-    access_token = create_access_token(data={"sub": user_obj.id})
-    return Token(access_token=access_token, user=user_obj)
+    # Translate response using tenant's module
+    user_response = await core.translate_response(tenant_info["id"], user_info)
+    
+    return Token(access_token=access_token, user=User(**user_response))
 
 # Tenant management
 @api_router.post("/tenants", response_model=Tenant)
