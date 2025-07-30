@@ -489,3 +489,254 @@ class CoworkingCMSEngine(BaseKernel):
             "tenant_id": tenant_id, 
             "page_id": page_id
         })
+    
+    # Site Configuration Management
+    async def get_site_config(self, tenant_id: str) -> Dict[str, Any]:
+        """Get site-wide configuration (navigation, footer, etc.)"""
+        config = await self.db.site_config.find_one({"tenant_id": tenant_id})
+        
+        if not config:
+            # Return default configuration
+            return self.get_default_site_config()
+        
+        return config
+    
+    async def save_site_config(self, tenant_id: str, config_data: Dict[str, Any]) -> bool:
+        """Save site-wide configuration"""
+        config_doc = {
+            "tenant_id": tenant_id,
+            "navigation": config_data.get("navigation", {}),
+            "footer": config_data.get("footer", {}),
+            "header": config_data.get("header", {}),
+            "branding": config_data.get("branding", {}),
+            "updated_at": datetime.utcnow()
+        }
+        
+        await self.db.site_config.replace_one(
+            {"tenant_id": tenant_id},
+            config_doc,
+            upsert=True
+        )
+        
+        return True
+    
+    def get_default_site_config(self) -> Dict[str, Any]:
+        """Get default site configuration for coworking spaces"""
+        return {
+            "navigation": {
+                "show_navigation": True,
+                "style": "horizontal",
+                "position": "top",
+                "menu_items": [
+                    {"label": "Home", "url": "/", "type": "page"},
+                    {"label": "Membership", "url": "/membership", "type": "page"},
+                    {"label": "Our Spaces", "url": "/spaces", "type": "page"},
+                    {"label": "Community", "url": "/community", "type": "page"},
+                    {"label": "Events", "url": "/events", "type": "page"},
+                    {"label": "Contact", "url": "/contact", "type": "page"}
+                ]
+            },
+            "header": {
+                "show_header": True,
+                "show_login_button": True,
+                "show_cta_button": True,
+                "cta_text": "Join Today",
+                "cta_url": "/membership",
+                "style": "modern"
+            },
+            "footer": {
+                "show_footer": True,
+                "style": "detailed",
+                "sections": [
+                    {
+                        "title": "Quick Links",
+                        "links": [
+                            {"label": "Membership Plans", "url": "/membership"},
+                            {"label": "Tour Our Space", "url": "/tour"},
+                            {"label": "Community Events", "url": "/events"},
+                            {"label": "Member Directory", "url": "/directory"}
+                        ]
+                    },
+                    {
+                        "title": "Support",
+                        "links": [
+                            {"label": "Help Center", "url": "/help"},
+                            {"label": "Contact Us", "url": "/contact"},
+                            {"label": "Community Guidelines", "url": "/guidelines"},
+                            {"label": "Terms of Service", "url": "/terms"}
+                        ]
+                    },
+                    {
+                        "title": "Connect",
+                        "links": [
+                            {"label": "Newsletter", "url": "/newsletter"},
+                            {"label": "LinkedIn", "url": "#", "external": True},
+                            {"label": "Twitter", "url": "#", "external": True},
+                            {"label": "Instagram", "url": "#", "external": True}
+                        ]
+                    }
+                ],
+                "bottom_text": "© 2025 Downtown Coworking Hub. All rights reserved.",
+                "show_social_links": True
+            },
+            "branding": {
+                "logo_url": "/images/logos/coworking-logo.svg",
+                "logo_alt": "Coworking Community",
+                "favicon_url": "/images/favicon.ico"
+            }
+        }
+    
+    # Default Homepage Generator
+    async def create_default_homepage(self, tenant_id: str) -> str:
+        """Create a default homepage with premade template"""
+        # Check if homepage already exists
+        existing_homepage = await self.db.pages.find_one({
+            "tenant_id": tenant_id,
+            "is_homepage": True
+        })
+        
+        if existing_homepage:
+            return existing_homepage["id"]
+        
+        # Create default homepage
+        page_id = str(datetime.utcnow().timestamp()).replace('.', '')
+        homepage = {
+            "id": page_id,
+            "tenant_id": tenant_id,
+            "title": "Welcome to Our Community",
+            "slug": "home",
+            "meta_title": "Coworking Space - Where Innovation Meets Community",
+            "meta_description": "Join our vibrant coworking community with flexible memberships, premium amenities, and networking opportunities.",
+            "status": "published",
+            "is_homepage": True,
+            "layout_settings": {
+                "show_header": True,
+                "show_navigation": True,
+                "show_footer": True,
+                "container_width": "full",
+                "sidebar": None
+            },
+            "seo_settings": {
+                "index": True,
+                "follow": True,
+                "sitemap": True
+            },
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        }
+        
+        await self.db.pages.insert_one(homepage)
+        
+        # Create default page builder data with coworking homepage template
+        default_blocks = [
+            {
+                "id": f"block_{datetime.utcnow().timestamp()}_1",
+                "type": "coworking_hero",
+                "order": 1,
+                "config": {
+                    "title": "Where Innovation Meets Community",
+                    "subtitle": "Join our vibrant coworking space and connect with like-minded professionals",
+                    "cta_text": "Start Your Journey",
+                    "cta_link": "/membership",
+                    "background_image": "/images/coworking-hero.jpg"
+                }
+            },
+            {
+                "id": f"block_{datetime.utcnow().timestamp()}_2",
+                "type": "community_stats",
+                "order": 2,
+                "config": {
+                    "title": "Join Our Growing Community",
+                    "stats": [
+                        {"number": "500+", "label": "Active Members"},
+                        {"number": "50+", "label": "Events Monthly"},
+                        {"number": "24/7", "label": "Access"},
+                        {"number": "99%", "label": "Satisfaction"}
+                    ]
+                }
+            },
+            {
+                "id": f"block_{datetime.utcnow().timestamp()}_3",
+                "type": "membership_pricing",
+                "order": 3,
+                "config": {
+                    "title": "Flexible Membership Plans",
+                    "subtitle": "Choose the plan that works best for your needs",
+                    "plans": [
+                        {
+                            "name": "Day Pass",
+                            "price": 25,
+                            "billing": "per day",
+                            "features": ["Access to open workspace", "High-speed WiFi", "Coffee & tea", "Community events"],
+                            "is_popular": False
+                        },
+                        {
+                            "name": "Hot Desk",
+                            "price": 200,
+                            "billing": "per month",
+                            "features": ["Flexible seating", "24/7 access", "Meeting room credits", "Networking events", "Mail handling"],
+                            "is_popular": True
+                        },
+                        {
+                            "name": "Dedicated Desk",
+                            "price": 350,
+                            "billing": "per month",
+                            "features": ["Your own desk", "Storage locker", "Priority booking", "Phone booth access", "Guest passes"],
+                            "is_popular": False
+                        }
+                    ]
+                }
+            },
+            {
+                "id": f"block_{datetime.utcnow().timestamp()}_4",
+                "type": "space_gallery",
+                "order": 4,
+                "config": {
+                    "title": "Explore Our Spaces",
+                    "spaces": [
+                        {"name": "Open Workspace", "description": "Collaborative area perfect for networking and creativity", "capacity": 50},
+                        {"name": "Private Offices", "description": "Quiet dedicated spaces for focused work", "capacity": 4},
+                        {"name": "Meeting Rooms", "description": "Professional spaces equipped for presentations", "capacity": 12}
+                    ]
+                }
+            },
+            {
+                "id": f"block_{datetime.utcnow().timestamp()}_5",
+                "type": "member_testimonials",
+                "order": 5,
+                "config": {
+                    "title": "What Our Members Say",
+                    "testimonials": [
+                        {
+                            "quote": "This community has completely transformed how I work. The energy and collaboration opportunities are incredible!",
+                            "author_name": "Sarah Johnson",
+                            "author_title": "Freelance Designer",
+                            "author_company": "Creative Studios",
+                            "rating": 5
+                        },
+                        {
+                            "quote": "Best decision I made for my startup. The networking alone has been worth every penny, plus the amenities are top-notch.",
+                            "author_name": "Michael Chen",
+                            "author_title": "Tech Entrepreneur",
+                            "author_company": "InnovateTech",
+                            "rating": 5
+                        }
+                    ]
+                }
+            },
+            {
+                "id": f"block_{datetime.utcnow().timestamp()}_6",
+                "type": "cta_membership",
+                "order": 6,
+                "config": {
+                    "title": "Ready to Join Our Community?",
+                    "subtitle": "Start with a free day pass and experience what we're all about",
+                    "primary_cta": "Get Free Day Pass",
+                    "secondary_cta": "Schedule Tour"
+                }
+            }
+        ]
+        
+        await self.save_page_builder_data(tenant_id, page_id, default_blocks)
+        
+        return page_id
