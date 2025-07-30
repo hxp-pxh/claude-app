@@ -211,9 +211,9 @@ const SiteConfigurationWidget = ({ isOpen, onClose }) => {
       ...prev,
       footer: {
         ...prev.footer,
-        sections: prev.footer.sections.map((section, i) => 
+        sections: (prev.footer?.sections || []).map((section, i) => 
           i === sectionIndex 
-            ? { ...section, links: section.links.filter((_, li) => li !== linkIndex) }
+            ? { ...section, links: (section.links || []).filter((_, li) => li !== linkIndex) }
             : section
         )
       }
