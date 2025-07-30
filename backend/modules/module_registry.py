@@ -6,6 +6,9 @@ from modules.base_module import BaseModule
 from modules.coworking_module import CoworkingModule
 from modules.government_module import GovernmentModule
 from modules.hotel_module import HotelModule
+from modules.university_module import UniversityModule
+from modules.creative_studio_module import CreativeStudioModule
+from modules.residential_module import ResidentialModule
 
 
 class ModuleRegistry:
@@ -20,6 +23,9 @@ class ModuleRegistry:
         self._modules["coworking"] = CoworkingModule
         self._modules["government"] = GovernmentModule
         self._modules["hotel"] = HotelModule
+        self._modules["university"] = UniversityModule
+        self._modules["creative_studio"] = CreativeStudioModule
+        self._modules["residential"] = ResidentialModule
     
     def register_module(self, industry_type: str, module_class: type):
         """Register a new module"""
