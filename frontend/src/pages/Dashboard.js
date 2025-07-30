@@ -6,10 +6,21 @@ import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
-  const { data: stats, isLoading } = useQuery({
-    queryKey: ['dashboard-stats'],
-    queryFn: () => api.get('/dashboard/stats').then(res => res.data)
+  const { data: dashboardData, isLoading } = useQuery({
+    queryKey: ['dashboard-enhanced'],
+    queryFn: () => api.get('/dashboard/enhanced').then(res => res.data)
   });
+
+  // Extract stats from the enhanced dashboard response
+  const stats = dashboardData ? {
+    total_leads: dashboardData.metrics?.total_leads || 0,
+    new_leads_this_month: dashboardData.metrics?.new_leads_this_month || 0,
+    total_pages: dashboardData.metrics?.total_pages || 0,
+    total_forms: dashboardData.metrics?.total_forms || 0,
+    upcoming_tours: dashboardData.metrics?.upcoming_tours || 0,
+    conversion_rate: dashboardData.metrics?.conversion_rate || 0,
+    recent_leads: dashboardData.metrics?.recent_leads || []
+  } : null;
 
   if (isLoading) {
     return (
