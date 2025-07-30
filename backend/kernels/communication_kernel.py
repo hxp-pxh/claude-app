@@ -5,7 +5,7 @@ Universal communication and workflow automation engine
 from typing import Dict, Any, List, Optional, Callable
 from datetime import datetime
 from enum import Enum
-from .base_kernel import BaseKernel
+from base_kernel import BaseKernel
 
 
 class TriggerEvent(str, Enum):
