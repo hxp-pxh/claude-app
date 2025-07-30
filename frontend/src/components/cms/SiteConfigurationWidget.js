@@ -34,6 +34,7 @@ const SiteConfigurationWidget = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (isOpen) {
       loadSiteConfig();
+      loadDomainConfig();
     }
   }, [isOpen]);
 
