@@ -61,8 +61,8 @@ function App() {
                   }
                 />
               </Routes>
-            </AuthProvider>
-          </TenantProvider>
+            </TenantProvider>
+          </AuthProvider>
         </BrowserRouter>
       </div>
     </QueryClientProvider>
