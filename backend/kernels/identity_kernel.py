@@ -116,17 +116,26 @@ class IdentityKernel(BaseKernel):
             "platform_admin": ["*"],  # All permissions
             "account_owner": [
                 "tenant.manage", "users.manage", "pages.manage", 
-                "forms.manage", "leads.manage", "tours.manage", "settings.manage"
+                "forms.manage", "leads.manage", "tours.manage", "settings.manage",
+                "role.account_owner"  # Add role-based permission
             ],
             "administrator": [
                 "users.manage", "pages.manage", "forms.manage", 
-                "leads.manage", "tours.manage"
+                "leads.manage", "tours.manage", "role.administrator"
             ],
             "property_manager": [
-                "pages.manage", "forms.manage", "leads.manage", "tours.manage"
+                "pages.manage", "forms.manage", "leads.manage", "tours.manage",
+                "role.property_manager"
             ],
-            "front_desk": ["leads.view", "leads.update", "tours.view", "tours.manage"],
-            "member": ["dashboard.view"],
+            "front_desk": [
+                "leads.view", "leads.update", "tours.view", "tours.manage",
+                "role.front_desk"
+            ],
+            "member": ["dashboard.view", "role.member"],
+            "company_admin": ["dashboard.view", "role.company_admin"],
+            "company_user": ["dashboard.view", "role.company_user"],
+            "maintenance": ["spaces.view", "spaces.update", "role.maintenance"],
+            "security": ["access.manage", "role.security"]
         }
         
         return role_permissions.get(user["role"], [])
