@@ -41,6 +41,9 @@ app = FastAPI(title="Claude - Space-as-a-Service Platform", version="3.0.0")
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
+# Global platform core instance
+platform_core = None
+
 # Enums
 class UserRole(str, Enum):
     PLATFORM_ADMIN = "platform_admin"
