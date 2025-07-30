@@ -7,12 +7,13 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, EmailStr
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 import uuid
 from datetime import datetime, timedelta
 import jwt
 from passlib.context import CryptContext
 from enum import Enum
+import json
 
 
 ROOT_DIR = Path(__file__).parent
@@ -32,7 +33,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
 
 # Create the main app
-app = FastAPI(title="Space Management Platform", version="2.0.0")
+app = FastAPI(title="Claude - Space-as-a-Service Platform", version="3.0.0")
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
@@ -40,67 +41,77 @@ api_router = APIRouter(prefix="/api")
 # Enums
 class UserRole(str, Enum):
     PLATFORM_ADMIN = "platform_admin"
-    TENANT_ADMIN = "tenant_admin" 
-    STAFF = "staff"
+    ACCOUNT_OWNER = "account_owner"
+    ADMINISTRATOR = "administrator"
+    PROPERTY_MANAGER = "property_manager"
+    FRONT_DESK = "front_desk"
+    MAINTENANCE = "maintenance"
+    SECURITY = "security"
     MEMBER = "member"
+    COMPANY_ADMIN = "company_admin"
+    COMPANY_USER = "company_user"
 
-class MembershipTier(str, Enum):
-    BASIC = "basic"
-    PREMIUM = "premium"
-    ENTERPRISE = "enterprise"
+class IndustryModule(str, Enum):
+    COWORKING = "coworking"
+    GOVERNMENT = "government"
+    COMMERCIAL_RE = "commercial_re"
+    HOTEL = "hotel"
+    UNIVERSITY = "university"
+    CREATIVE = "creative"
+    RESIDENTIAL = "residential"
 
-class ResourceType(str, Enum):
-    BUILDING = "building"
-    FLOOR = "floor"
-    ROOM = "room"
-    DESK = "desk"
-    EQUIPMENT = "equipment"
+class LeadStatus(str, Enum):
+    NEW_INQUIRY = "new_inquiry"
+    TOUR_SCHEDULED = "tour_scheduled"
+    TOUR_COMPLETED = "tour_completed"
+    CONVERTED = "converted"
+    CLOSED = "closed"
 
-class BookingStatus(str, Enum):
-    CONFIRMED = "confirmed"
-    PENDING = "pending" 
-    CANCELLED = "cancelled"
+class PageStatus(str, Enum):
+    DRAFT = "draft"
+    PUBLISHED = "published"
+    ARCHIVED = "archived"
 
-class EventType(str, Enum):
-    WORKSHOP = "workshop"
-    NETWORKING = "networking"
-    SOCIAL = "social"
-    PRESENTATION = "presentation"
-    MEETING = "meeting"
+class WidgetType(str, Enum):
+    HERO_BANNER = "hero_banner"
+    BOOKING_CALENDAR = "booking_calendar"
+    PRICING_CARDS = "pricing_cards"
+    EVENT_LISTINGS = "event_listings"
+    LEAD_FORM = "lead_form"
+    TOUR_SCHEDULER = "tour_scheduler"
+    MEMBER_DIRECTORY = "member_directory"
+    TESTIMONIALS = "testimonials"
+    FAQ = "faq"
+    CONTACT_INFO = "contact_info"
+    GALLERY = "gallery"
+    NEWSLETTER_SIGNUP = "newsletter_signup"
 
-class CheckInStatus(str, Enum):
-    CHECKED_IN = "checked_in"
-    CHECKED_OUT = "checked_out"
+class FormFieldType(str, Enum):
+    TEXT = "text"
+    EMAIL = "email"
+    PHONE = "phone"
+    TEXTAREA = "textarea"
+    SELECT = "select"
+    CHECKBOX = "checkbox"
+    RADIO = "radio"
+    DATE = "date"
+    TIME = "time"
+    NUMBER = "number"
+    FILE = "file"
 
-# Enhanced Models
-class MemberProfile(BaseModel):
-    bio: Optional[str] = None
-    company: Optional[str] = None
-    job_title: Optional[str] = None
-    skills: List[str] = Field(default_factory=list)
-    interests: List[str] = Field(default_factory=list)
-    linkedin: Optional[str] = None
-    website: Optional[str] = None
-    phone: Optional[str] = None
-    avatar_url: Optional[str] = None
-    looking_for: Optional[str] = None  # collaboration, networking, etc.
-    open_to_connect: bool = True
-
+# Core Models
 class Tenant(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
     subdomain: str
     custom_domain: Optional[str] = None
-    plan: str = "basic"
+    industry_module: IndustryModule = IndustryModule.COWORKING
+    plan: str = "starter"
     is_active: bool = True
+    branding: Dict[str, Any] = Field(default_factory=dict)
     settings: Dict[str, Any] = Field(default_factory=dict)
+    feature_toggles: Dict[str, bool] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=datetime.utcnow)
-
-class TenantCreate(BaseModel):
-    name: str
-    subdomain: str
-    admin_email: EmailStr
-    admin_password: str
 
 class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -110,12 +121,114 @@ class User(BaseModel):
     last_name: str
     role: UserRole
     is_active: bool = True
-    membership_tier: Optional[MembershipTier] = None
-    profile: Optional[MemberProfile] = Field(default_factory=MemberProfile)
-    membership_start_date: Optional[datetime] = None
-    membership_end_date: Optional[datetime] = None
+    company_id: Optional[str] = None  # For company users
+    profile: Dict[str, Any] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     last_login: Optional[datetime] = None
+
+# CMS Models
+class Page(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    title: str
+    slug: str
+    content_blocks: List[Dict[str, Any]] = Field(default_factory=list)
+    meta_title: Optional[str] = None
+    meta_description: Optional[str] = None
+    status: PageStatus = PageStatus.DRAFT
+    template_id: Optional[str] = None
+    is_homepage: bool = False
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class Template(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    industry_module: IndustryModule
+    preview_image: Optional[str] = None
+    layout_config: Dict[str, Any] = Field(default_factory=dict)
+    default_content: Dict[str, Any] = Field(default_factory=dict)
+    is_active: bool = True
+
+class Widget(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    name: str
+    type: WidgetType
+    config: Dict[str, Any] = Field(default_factory=dict)
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Lead Management Models
+class FormField(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    label: str
+    type: FormFieldType
+    is_required: bool = False
+    options: List[str] = Field(default_factory=list)  # For select/radio/checkbox
+    placeholder: Optional[str] = None
+    validation_rules: Dict[str, Any] = Field(default_factory=dict)
+
+class Form(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    name: str
+    title: str
+    description: Optional[str] = None
+    fields: List[FormField] = Field(default_factory=list)
+    success_message: str = "Thank you for your submission!"
+    redirect_url: Optional[str] = None
+    email_notifications: List[str] = Field(default_factory=list)
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class Lead(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    first_name: str
+    last_name: str
+    email: EmailStr
+    phone: Optional[str] = None
+    company: Optional[str] = None
+    status: LeadStatus = LeadStatus.NEW_INQUIRY
+    source: Optional[str] = None  # Form name, referral, etc.
+    notes: Optional[str] = None
+    custom_fields: Dict[str, Any] = Field(default_factory=dict)
+    assigned_to: Optional[str] = None  # User ID
+    tour_scheduled_at: Optional[datetime] = None
+    tour_completed_at: Optional[datetime] = None
+    converted_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class TourSlot(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    staff_user_id: str
+    date: datetime
+    duration_minutes: int = 30
+    max_bookings: int = 1
+    is_available: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class Tour(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    lead_id: str
+    tour_slot_id: str
+    scheduled_at: datetime
+    staff_user_id: str
+    status: str = "scheduled"  # scheduled, completed, cancelled, no_show
+    notes: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Request/Response Models
+class TenantCreate(BaseModel):
+    name: str
+    subdomain: str
+    industry_module: IndustryModule
+    admin_email: EmailStr
+    admin_password: str
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -123,120 +236,71 @@ class UserCreate(BaseModel):
     first_name: str
     last_name: str
     role: UserRole = UserRole.MEMBER
-    membership_tier: Optional[MembershipTier] = MembershipTier.BASIC
 
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
-class UserProfileUpdate(BaseModel):
-    profile: MemberProfile
-
-class Resource(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    tenant_id: str
-    name: str
-    type: ResourceType
-    parent_id: Optional[str] = None  # For hierarchy
-    capacity: Optional[int] = None
-    amenities: List[str] = Field(default_factory=list)
-    hourly_rate: Optional[float] = None
-    daily_rate: Optional[float] = None
-    member_discount: Optional[float] = None  # Percentage discount for members
-    premium_member_discount: Optional[float] = None
-    is_bookable: bool = True
-    is_active: bool = True
-    min_booking_duration: Optional[int] = None  # minutes
-    max_booking_duration: Optional[int] = None  # minutes
-    advance_booking_days: Optional[int] = 30  # how far ahead can be booked
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-
-class ResourceCreate(BaseModel):
-    name: str
-    type: ResourceType
-    parent_id: Optional[str] = None
-    capacity: Optional[int] = None
-    amenities: List[str] = Field(default_factory=list)
-    hourly_rate: Optional[float] = None
-    daily_rate: Optional[float] = None
-    member_discount: Optional[float] = None
-    premium_member_discount: Optional[float] = None
-    is_bookable: bool = True
-    min_booking_duration: Optional[int] = None
-    max_booking_duration: Optional[int] = None
-    advance_booking_days: Optional[int] = 30
-
-class Booking(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    tenant_id: str
-    user_id: str
-    resource_id: str
-    start_time: datetime
-    end_time: datetime
-    status: BookingStatus = BookingStatus.CONFIRMED
-    attendees: int = 1
-    notes: Optional[str] = None
-    total_cost: Optional[float] = None
-    is_recurring: bool = False
-    recurring_pattern: Optional[Dict[str, Any]] = None  # daily, weekly, monthly
-    parent_booking_id: Optional[str] = None  # for recurring bookings
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-
-class BookingCreate(BaseModel):
-    resource_id: str
-    start_time: datetime
-    end_time: datetime
-    attendees: int = 1
-    notes: Optional[str] = None
-    is_recurring: bool = False
-    recurring_pattern: Optional[Dict[str, Any]] = None
-
-class Event(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    tenant_id: str
-    host_user_id: str
+class PageCreate(BaseModel):
     title: str
-    description: str
-    event_type: EventType
-    start_time: datetime
-    end_time: datetime
-    location: Optional[str] = None
-    resource_id: Optional[str] = None
-    max_attendees: Optional[int] = None
-    is_public: bool = True
-    requires_approval: bool = False
-    cost: Optional[float] = None
-    attendees: List[str] = Field(default_factory=list)  # user IDs
-    waitlist: List[str] = Field(default_factory=list)  # user IDs
-    tags: List[str] = Field(default_factory=list)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    slug: str
+    content_blocks: List[Dict[str, Any]] = Field(default_factory=list)
+    meta_title: Optional[str] = None
+    meta_description: Optional[str] = None
+    template_id: Optional[str] = None
+    is_homepage: bool = False
 
-class EventCreate(BaseModel):
+class PageUpdate(BaseModel):
+    title: Optional[str] = None
+    content_blocks: Optional[List[Dict[str, Any]]] = None
+    meta_title: Optional[str] = None
+    meta_description: Optional[str] = None
+    status: Optional[PageStatus] = None
+
+class FormCreate(BaseModel):
+    name: str
     title: str
-    description: str
-    event_type: EventType
-    start_time: datetime
-    end_time: datetime
-    location: Optional[str] = None
-    resource_id: Optional[str] = None
-    max_attendees: Optional[int] = None
-    is_public: bool = True
-    requires_approval: bool = False
-    cost: Optional[float] = None
-    tags: List[str] = Field(default_factory=list)
+    description: Optional[str] = None
+    fields: List[FormField]
+    success_message: str = "Thank you for your submission!"
+    email_notifications: List[str] = Field(default_factory=list)
 
-class CheckIn(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    tenant_id: str
-    user_id: str
-    resource_id: Optional[str] = None
-    check_in_time: datetime = Field(default_factory=datetime.utcnow)
-    check_out_time: Optional[datetime] = None
-    status: CheckInStatus = CheckInStatus.CHECKED_IN
-    duration_minutes: Optional[int] = None
+class FormSubmission(BaseModel):
+    form_id: str
+    data: Dict[str, Any]
+    source_url: Optional[str] = None
 
-class CheckInCreate(BaseModel):
-    resource_id: Optional[str] = None
+class LeadCreate(BaseModel):
+    first_name: str
+    last_name: str
+    email: EmailStr
+    phone: Optional[str] = None
+    company: Optional[str] = None
+    source: Optional[str] = None
+    notes: Optional[str] = None
+    custom_fields: Dict[str, Any] = Field(default_factory=dict)
+
+class LeadUpdate(BaseModel):
+    status: Optional[LeadStatus] = None
+    notes: Optional[str] = None
+    assigned_to: Optional[str] = None
+    custom_fields: Optional[Dict[str, Any]] = None
+
+class TourSlotCreate(BaseModel):
+    staff_user_id: str
+    date: datetime
+    duration_minutes: int = 30
+    max_bookings: int = 1
+
+class TourBooking(BaseModel):
+    tour_slot_id: str
+    lead_id: Optional[str] = None
+    first_name: str
+    last_name: str
+    email: EmailStr
+    phone: Optional[str] = None
+    company: Optional[str] = None
+    notes: Optional[str] = None
 
 class Token(BaseModel):
     access_token: str
@@ -282,26 +346,6 @@ def require_role(required_roles: List[UserRole]):
         return current_user
     return role_checker
 
-def calculate_booking_cost(resource: dict, start_time: datetime, end_time: datetime, user_tier: Optional[str] = None) -> float:
-    """Calculate booking cost with member discounts"""
-    duration_hours = (end_time - start_time).total_seconds() / 3600
-    base_cost = 0
-    
-    if resource.get("hourly_rate"):
-        base_cost = resource["hourly_rate"] * duration_hours
-    elif resource.get("daily_rate") and duration_hours >= 8:
-        base_cost = resource["daily_rate"] * (duration_hours / 24)
-    
-    # Apply member discounts
-    if user_tier == "premium" and resource.get("premium_member_discount"):
-        discount = resource["premium_member_discount"] / 100
-        base_cost *= (1 - discount)
-    elif user_tier in ["basic", "premium"] and resource.get("member_discount"):
-        discount = resource["member_discount"] / 100
-        base_cost *= (1 - discount)
-    
-    return round(base_cost, 2)
-
 # Authentication routes
 @api_router.post("/auth/register", response_model=Token)
 async def register_user(user_data: UserCreate, tenant_subdomain: str):
@@ -320,11 +364,6 @@ async def register_user(user_data: UserCreate, tenant_subdomain: str):
     user_dict = user_data.dict()
     user_dict.pop("password")
     user_dict["tenant_id"] = tenant["id"]
-    
-    # Set membership dates for members
-    if user_dict["role"] == UserRole.MEMBER:
-        user_dict["membership_start_date"] = datetime.utcnow()
-        user_dict["membership_end_date"] = datetime.utcnow() + timedelta(days=365)
     
     user = User(**user_dict)
     await db.users.insert_one(user.dict())
@@ -358,7 +397,7 @@ async def login_user(user_data: UserLogin, tenant_subdomain: str):
     access_token = create_access_token(data={"sub": user_obj.id})
     return Token(access_token=access_token, user=user_obj)
 
-# Tenant management routes
+# Tenant management
 @api_router.post("/tenants", response_model=Tenant)
 async def create_tenant(tenant_data: TenantCreate):
     # Check if subdomain is available
@@ -366,566 +405,609 @@ async def create_tenant(tenant_data: TenantCreate):
     if existing_tenant:
         raise HTTPException(status_code=400, detail="Subdomain already taken")
     
-    # Create tenant
+    # Create tenant with industry-specific defaults
     tenant = Tenant(
         name=tenant_data.name,
-        subdomain=tenant_data.subdomain
+        subdomain=tenant_data.subdomain,
+        industry_module=tenant_data.industry_module,
+        feature_toggles=get_default_feature_toggles(tenant_data.industry_module)
     )
     await db.tenants.insert_one(tenant.dict())
     
-    # Create admin user
+    # Create account owner
     hashed_password = get_password_hash(tenant_data.admin_password)
     admin_user = User(
         tenant_id=tenant.id,
         email=tenant_data.admin_email,
-        first_name="Admin",
-        last_name="User", 
-        role=UserRole.TENANT_ADMIN
+        first_name="Account",
+        last_name="Owner",
+        role=UserRole.ACCOUNT_OWNER
     )
     await db.users.insert_one(admin_user.dict())
     await db.user_passwords.insert_one({"user_id": admin_user.id, "hashed_password": hashed_password})
     
+    # Create default homepage
+    await create_default_homepage(tenant.id, tenant_data.industry_module)
+    
     return tenant
 
-# Enhanced User/Profile management routes
-@api_router.get("/users", response_model=List[User])
-async def get_users(
-    current_user: User = Depends(require_role([UserRole.TENANT_ADMIN, UserRole.STAFF]))
-):
-    users = await db.users.find({"tenant_id": current_user.tenant_id}).to_list(1000)
-    return [User(**user) for user in users]
+def get_default_feature_toggles(industry_module: IndustryModule) -> Dict[str, bool]:
+    """Get default feature toggles based on industry module"""
+    base_features = {
+        "website_builder": True,
+        "lead_management": True,
+        "booking_system": True,
+        "support_system": True,
+        "financial_management": True,
+    }
+    
+    if industry_module == IndustryModule.COWORKING:
+        base_features.update({
+            "community_platform": True,
+            "events_system": True,
+            "member_directory": True,
+        })
+    elif industry_module == IndustryModule.GOVERNMENT:
+        base_features.update({
+            "approval_workflows": True,
+            "public_transparency": True,
+            "accessibility_features": True,
+        })
+    elif industry_module == IndustryModule.HOTEL:
+        base_features.update({
+            "complex_resource_booking": True,
+            "guest_management": True,
+        })
+    
+    return base_features
 
-@api_router.get("/users/me", response_model=User)
-async def get_current_user_info(current_user: User = Depends(get_current_user)):
-    return current_user
-
-@api_router.put("/users/me/profile", response_model=User)
-async def update_user_profile(
-    profile_data: UserProfileUpdate,
-    current_user: User = Depends(get_current_user)
-):
-    await db.users.update_one(
-        {"id": current_user.id},
-        {"$set": {"profile": profile_data.profile.dict()}}
+async def create_default_homepage(tenant_id: str, industry_module: IndustryModule):
+    """Create a default homepage based on industry module"""
+    # Get default template for industry
+    template = await db.templates.find_one({"industry_module": industry_module})
+    
+    default_content = get_default_page_content(industry_module)
+    
+    homepage = Page(
+        tenant_id=tenant_id,
+        title="Welcome",
+        slug="home",
+        content_blocks=default_content,
+        meta_title=f"Welcome to Our Space",
+        meta_description="Discover our amazing space and book your next meeting or workspace.",
+        status=PageStatus.PUBLISHED,
+        template_id=template["id"] if template else None,
+        is_homepage=True
     )
     
-    updated_user = await db.users.find_one({"id": current_user.id})
-    return User(**updated_user)
+    await db.pages.insert_one(homepage.dict())
 
-@api_router.get("/users/directory")
-async def get_member_directory(
-    current_user: User = Depends(get_current_user)
-):
-    """Get public member directory for networking"""
-    users = await db.users.find({
-        "tenant_id": current_user.tenant_id,
-        "role": UserRole.MEMBER,
-        "is_active": True,
-        "profile.open_to_connect": True
-    }).to_list(1000)
-    
-    # Create filtered user objects without sensitive information
-    filtered_users = []
-    for user in users:
-        # Create a copy and remove sensitive fields
-        user_data = dict(user)
-        user_data.pop("email", None)  # Remove email for privacy
-        
-        # Create a simplified user dict
-        filtered_user = {
-            "id": user_data.get("id"),
-            "first_name": user_data.get("first_name"),
-            "last_name": user_data.get("last_name"),
-            "role": user_data.get("role"),
-            "membership_tier": user_data.get("membership_tier"),
-            "profile": user_data.get("profile", {}),
-            "created_at": user_data.get("created_at")
-        }
-        filtered_users.append(filtered_user)
-    
-    return filtered_users
-
-# Resource management routes
-@api_router.post("/resources", response_model=Resource)
-async def create_resource(
-    resource_data: ResourceCreate,
-    current_user: User = Depends(require_role([UserRole.TENANT_ADMIN, UserRole.STAFF]))
-):
-    resource = Resource(**resource_data.dict(), tenant_id=current_user.tenant_id)
-    await db.resources.insert_one(resource.dict())
-    return resource
-
-@api_router.get("/resources", response_model=List[Resource])
-async def get_resources(
-    resource_type: Optional[ResourceType] = None,
-    current_user: User = Depends(get_current_user)
-):
-    query = {"tenant_id": current_user.tenant_id, "is_active": True}
-    if resource_type:
-        query["type"] = resource_type
-    
-    resources = await db.resources.find(query).to_list(1000)
-    return [Resource(**resource) for resource in resources]
-
-@api_router.get("/resources/{resource_id}", response_model=Resource)
-async def get_resource(
-    resource_id: str,
-    current_user: User = Depends(get_current_user)
-):
-    resource = await db.resources.find_one({
-        "id": resource_id, 
-        "tenant_id": current_user.tenant_id
-    })
-    if not resource:
-        raise HTTPException(status_code=404, detail="Resource not found")
-    return Resource(**resource)
-
-# Enhanced Booking routes with member pricing
-@api_router.post("/bookings", response_model=Booking)
-async def create_booking(
-    booking_data: BookingCreate,
-    current_user: User = Depends(get_current_user)
-):
-    # Validate resource exists and belongs to tenant
-    resource = await db.resources.find_one({
-        "id": booking_data.resource_id,
-        "tenant_id": current_user.tenant_id,
-        "is_bookable": True,
-        "is_active": True
-    })
-    if not resource:
-        raise HTTPException(status_code=404, detail="Resource not found or not bookable")
-    
-    # Check booking duration limits
-    duration_minutes = (booking_data.end_time - booking_data.start_time).total_seconds() / 60
-    
-    if resource.get("min_booking_duration") and duration_minutes < resource["min_booking_duration"]:
-        raise HTTPException(status_code=400, detail=f"Minimum booking duration is {resource['min_booking_duration']} minutes")
-    
-    if resource.get("max_booking_duration") and duration_minutes > resource["max_booking_duration"]:
-        raise HTTPException(status_code=400, detail=f"Maximum booking duration is {resource['max_booking_duration']} minutes")
-    
-    # Check advance booking limit
-    if resource.get("advance_booking_days"):
-        max_advance = datetime.utcnow() + timedelta(days=resource["advance_booking_days"])
-        if booking_data.start_time > max_advance:
-            raise HTTPException(status_code=400, detail=f"Cannot book more than {resource['advance_booking_days']} days in advance")
-    
-    # Check for conflicts
-    existing_bookings = await db.bookings.find({
-        "resource_id": booking_data.resource_id,
-        "status": {"$in": [BookingStatus.CONFIRMED, BookingStatus.PENDING]},
-        "$or": [
+def get_default_page_content(industry_module: IndustryModule) -> List[Dict[str, Any]]:
+    """Get default content blocks for homepage based on industry"""
+    if industry_module == IndustryModule.COWORKING:
+        return [
             {
-                "start_time": {"$lte": booking_data.end_time},
-                "end_time": {"$gte": booking_data.start_time}
+                "type": "hero_banner",
+                "config": {
+                    "title": "Welcome to Our Coworking Space",
+                    "subtitle": "Where innovation meets collaboration",
+                    "background_image": "/images/coworking-hero.jpg",
+                    "cta_text": "Book Your Space Today",
+                    "cta_link": "/booking"
+                }
+            },
+            {
+                "type": "pricing_cards",
+                "config": {
+                    "title": "Membership Plans",
+                    "plans": [
+                        {
+                            "name": "Hot Desk",
+                            "price": "$99/month",
+                            "features": ["Flexible seating", "WiFi", "Coffee"]
+                        },
+                        {
+                            "name": "Dedicated Desk",
+                            "price": "$199/month",
+                            "features": ["Your own desk", "Storage", "24/7 access"]
+                        }
+                    ]
+                }
             }
         ]
-    }).to_list(100)
-    
-    if existing_bookings:
-        raise HTTPException(status_code=400, detail="Time slot not available")
-    
-    # Calculate cost with member discounts
-    total_cost = calculate_booking_cost(resource, booking_data.start_time, booking_data.end_time, current_user.membership_tier)
-    
-    booking = Booking(
-        **booking_data.dict(),
-        tenant_id=current_user.tenant_id,
-        user_id=current_user.id,
-        total_cost=total_cost
-    )
-    await db.bookings.insert_one(booking.dict())
-    
-    # Handle recurring bookings
-    if booking_data.is_recurring and booking_data.recurring_pattern:
-        await create_recurring_bookings(booking, booking_data.recurring_pattern)
-    
-    return booking
-
-async def create_recurring_bookings(parent_booking: Booking, pattern: Dict[str, Any]):
-    """Create recurring booking instances"""
-    recurring_bookings = []
-    pattern_type = pattern.get("type", "weekly")
-    occurrences = pattern.get("occurrences", 10)
-    
-    for i in range(1, occurrences + 1):
-        if pattern_type == "daily":
-            delta = timedelta(days=i)
-        elif pattern_type == "weekly":
-            delta = timedelta(weeks=i)
-        elif pattern_type == "monthly":
-            delta = timedelta(days=i * 30)  # Simplified monthly
-        else:
-            continue
-        
-        new_start = parent_booking.start_time + delta
-        new_end = parent_booking.end_time + delta
-        
-        # Check for conflicts
-        existing_bookings = await db.bookings.find({
-            "resource_id": parent_booking.resource_id,
-            "status": {"$in": [BookingStatus.CONFIRMED, BookingStatus.PENDING]},
-            "$or": [
-                {
-                    "start_time": {"$lte": new_end},
-                    "end_time": {"$gte": new_start}
+    elif industry_module == IndustryModule.GOVERNMENT:
+        return [
+            {
+                "type": "hero_banner",
+                "config": {
+                    "title": "Public Facility Booking",
+                    "subtitle": "Reserve community spaces for your events",
+                    "background_image": "/images/government-hero.jpg",
+                    "cta_text": "View Available Spaces",
+                    "cta_link": "/spaces"
                 }
-            ]
-        }).to_list(100)
-        
-        if not existing_bookings:
-            recurring_booking = Booking(
-                tenant_id=parent_booking.tenant_id,
-                user_id=parent_booking.user_id,
-                resource_id=parent_booking.resource_id,
-                start_time=new_start,
-                end_time=new_end,
-                status=parent_booking.status,
-                attendees=parent_booking.attendees,
-                notes=parent_booking.notes,
-                total_cost=parent_booking.total_cost,
-                is_recurring=True,
-                parent_booking_id=parent_booking.id
-            )
-            recurring_bookings.append(recurring_booking.dict())
-    
-    if recurring_bookings:
-        await db.bookings.insert_many(recurring_bookings)
+            }
+        ]
+    else:
+        return [
+            {
+                "type": "hero_banner",
+                "config": {
+                    "title": "Welcome to Our Space",
+                    "subtitle": "Book your perfect workspace",
+                    "cta_text": "Get Started",
+                    "cta_link": "/booking"
+                }
+            }
+        ]
 
-@api_router.get("/bookings", response_model=List[Booking])
-async def get_bookings(
+# CMS Routes
+@api_router.get("/cms/pages", response_model=List[Page])
+async def get_pages(
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER]))
+):
+    pages = await db.pages.find({"tenant_id": current_user.tenant_id}).to_list(1000)
+    return [Page(**page) for page in pages]
+
+@api_router.post("/cms/pages", response_model=Page)
+async def create_page(
+    page_data: PageCreate,
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER]))
+):
+    # Check if slug already exists
+    existing_page = await db.pages.find_one({
+        "tenant_id": current_user.tenant_id,
+        "slug": page_data.slug
+    })
+    if existing_page:
+        raise HTTPException(status_code=400, detail="Page with this slug already exists")
+    
+    # If setting as homepage, unset current homepage
+    if page_data.is_homepage:
+        await db.pages.update_many(
+            {"tenant_id": current_user.tenant_id, "is_homepage": True},
+            {"$set": {"is_homepage": False}}
+        )
+    
+    page = Page(**page_data.dict(), tenant_id=current_user.tenant_id)
+    await db.pages.insert_one(page.dict())
+    return page
+
+@api_router.get("/cms/pages/{page_id}", response_model=Page)
+async def get_page(
+    page_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    page = await db.pages.find_one({
+        "id": page_id,
+        "tenant_id": current_user.tenant_id
+    })
+    if not page:
+        raise HTTPException(status_code=404, detail="Page not found")
+    return Page(**page)
+
+@api_router.put("/cms/pages/{page_id}", response_model=Page)
+async def update_page(
+    page_id: str,
+    page_data: PageUpdate,
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER]))
+):
+    page = await db.pages.find_one({
+        "id": page_id,
+        "tenant_id": current_user.tenant_id
+    })
+    if not page:
+        raise HTTPException(status_code=404, detail="Page not found")
+    
+    update_data = {k: v for k, v in page_data.dict().items() if v is not None}
+    update_data["updated_at"] = datetime.utcnow()
+    
+    await db.pages.update_one(
+        {"id": page_id},
+        {"$set": update_data}
+    )
+    
+    updated_page = await db.pages.find_one({"id": page_id})
+    return Page(**updated_page)
+
+@api_router.delete("/cms/pages/{page_id}")
+async def delete_page(
+    page_id: str,
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER]))
+):
+    page = await db.pages.find_one({
+        "id": page_id,
+        "tenant_id": current_user.tenant_id
+    })
+    if not page:
+        raise HTTPException(status_code=404, detail="Page not found")
+    
+    if page.get("is_homepage"):
+        raise HTTPException(status_code=400, detail="Cannot delete homepage")
+    
+    await db.pages.delete_one({"id": page_id})
+    return {"message": "Page deleted successfully"}
+
+@api_router.get("/cms/templates", response_model=List[Template])
+async def get_templates(
+    current_user: User = Depends(get_current_user)
+):
+    # Get tenant to determine industry module
+    tenant = await db.tenants.find_one({"id": current_user.tenant_id})
+    
+    templates = await db.templates.find({
+        "$or": [
+            {"industry_module": tenant["industry_module"]},
+            {"industry_module": None}  # Universal templates
+        ]
+    }).to_list(1000)
+    
+    return [Template(**template) for template in templates]
+
+# Form Builder Routes
+@api_router.get("/forms", response_model=List[Form])
+async def get_forms(
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER, UserRole.FRONT_DESK]))
+):
+    forms = await db.forms.find({"tenant_id": current_user.tenant_id}).to_list(1000)
+    return [Form(**form) for form in forms]
+
+@api_router.post("/forms", response_model=Form)
+async def create_form(
+    form_data: FormCreate,
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER]))
+):
+    form = Form(**form_data.dict(), tenant_id=current_user.tenant_id)
+    await db.forms.insert_one(form.dict())
+    return form
+
+@api_router.post("/forms/{form_id}/submit")
+async def submit_form(
+    form_id: str,
+    submission: FormSubmission,
+    request: Request
+):
+    # Get form by ID
+    form = await db.forms.find_one({"id": form_id, "is_active": True})
+    if not form:
+        raise HTTPException(status_code=404, detail="Form not found")
+    
+    # Validate required fields
+    form_obj = Form(**form)
+    for field in form_obj.fields:
+        if field.is_required and field.label.lower() not in [k.lower() for k in submission.data.keys()]:
+            raise HTTPException(status_code=400, detail=f"Required field '{field.label}' is missing")
+    
+    # Create lead from form submission
+    lead_data = {
+        "tenant_id": form["tenant_id"],
+        "first_name": submission.data.get("first_name", submission.data.get("name", "Unknown")),
+        "last_name": submission.data.get("last_name", ""),
+        "email": submission.data.get("email", ""),
+        "phone": submission.data.get("phone"),
+        "company": submission.data.get("company"),
+        "source": form["name"],
+        "notes": submission.data.get("message", submission.data.get("notes")),
+        "custom_fields": {k: v for k, v in submission.data.items() 
+                         if k not in ["first_name", "last_name", "email", "phone", "company", "message", "notes"]}
+    }
+    
+    # Check if lead already exists
+    existing_lead = await db.leads.find_one({
+        "tenant_id": form["tenant_id"],
+        "email": lead_data["email"]
+    })
+    
+    if existing_lead:
+        # Update existing lead
+        await db.leads.update_one(
+            {"id": existing_lead["id"]},
+            {"$set": {
+                "updated_at": datetime.utcnow(),
+                "custom_fields": {**existing_lead.get("custom_fields", {}), **lead_data["custom_fields"]}
+            }}
+        )
+        lead_id = existing_lead["id"]
+    else:
+        # Create new lead
+        lead = Lead(**lead_data)
+        await db.leads.insert_one(lead.dict())
+        lead_id = lead.id
+    
+    # Store form submission
+    await db.form_submissions.insert_one({
+        "id": str(uuid.uuid4()),
+        "form_id": form_id,
+        "lead_id": lead_id,
+        "data": submission.data,
+        "source_url": submission.source_url,
+        "ip_address": request.client.host,
+        "user_agent": request.headers.get("user-agent"),
+        "created_at": datetime.utcnow()
+    })
+    
+    # TODO: Send notification emails to form.email_notifications
+    
+    return {"message": "Form submitted successfully", "lead_id": lead_id}
+
+# Lead Management Routes
+@api_router.get("/leads", response_model=List[Lead])
+async def get_leads(
+    status: Optional[LeadStatus] = None,
+    assigned_to: Optional[str] = None,
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER, UserRole.FRONT_DESK]))
+):
+    query = {"tenant_id": current_user.tenant_id}
+    if status:
+        query["status"] = status
+    if assigned_to:
+        query["assigned_to"] = assigned_to
+    
+    leads = await db.leads.find(query).sort("created_at", -1).to_list(1000)
+    return [Lead(**lead) for lead in leads]
+
+@api_router.post("/leads", response_model=Lead)
+async def create_lead(
+    lead_data: LeadCreate,
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER, UserRole.FRONT_DESK]))
+):
+    lead = Lead(**lead_data.dict(), tenant_id=current_user.tenant_id)
+    await db.leads.insert_one(lead.dict())
+    return lead
+
+@api_router.get("/leads/{lead_id}", response_model=Lead)
+async def get_lead(
+    lead_id: str,
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER, UserRole.FRONT_DESK]))
+):
+    lead = await db.leads.find_one({
+        "id": lead_id,
+        "tenant_id": current_user.tenant_id
+    })
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    return Lead(**lead)
+
+@api_router.put("/leads/{lead_id}", response_model=Lead)
+async def update_lead(
+    lead_id: str,
+    lead_data: LeadUpdate,
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER, UserRole.FRONT_DESK]))
+):
+    lead = await db.leads.find_one({
+        "id": lead_id,
+        "tenant_id": current_user.tenant_id
+    })
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    
+    update_data = {k: v for k, v in lead_data.dict().items() if v is not None}
+    update_data["updated_at"] = datetime.utcnow()
+    
+    # Handle status changes
+    if "status" in update_data:
+        if update_data["status"] == LeadStatus.CONVERTED:
+            update_data["converted_at"] = datetime.utcnow()
+        elif update_data["status"] == LeadStatus.TOUR_COMPLETED:
+            update_data["tour_completed_at"] = datetime.utcnow()
+    
+    await db.leads.update_one(
+        {"id": lead_id},
+        {"$set": update_data}
+    )
+    
+    updated_lead = await db.leads.find_one({"id": lead_id})
+    return Lead(**updated_lead)
+
+# Tour Management Routes
+@api_router.get("/tours/slots", response_model=List[TourSlot])
+async def get_tour_slots(
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
     current_user: User = Depends(get_current_user)
 ):
     query = {"tenant_id": current_user.tenant_id}
-    if current_user.role == UserRole.MEMBER:
-        query["user_id"] = current_user.id
     
-    bookings = await db.bookings.find(query).sort("start_time", 1).to_list(1000)
-    return [Booking(**booking) for booking in bookings]
+    if date_from:
+        query["date"] = {"$gte": datetime.fromisoformat(date_from)}
+    if date_to:
+        if "date" in query:
+            query["date"].update({"$lte": datetime.fromisoformat(date_to)})
+        else:
+            query["date"] = {"$lte": datetime.fromisoformat(date_to)}
+    
+    slots = await db.tour_slots.find(query).sort("date", 1).to_list(1000)
+    return [TourSlot(**slot) for slot in slots]
 
-@api_router.get("/bookings/availability/{resource_id}")
-async def check_availability(
-    resource_id: str,
-    start_date: str,  # YYYY-MM-DD
-    current_user: User = Depends(get_current_user)
+@api_router.post("/tours/slots", response_model=TourSlot)
+async def create_tour_slot(
+    slot_data: TourSlotCreate,
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER]))
 ):
-    try:
-        check_date = datetime.fromisoformat(start_date)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid date format")
+    slot = TourSlot(**slot_data.dict(), tenant_id=current_user.tenant_id)
+    await db.tour_slots.insert_one(slot.dict())
+    return slot
+
+@api_router.post("/tours/book")
+async def book_tour(tour_data: TourBooking):
+    # Get tour slot
+    slot = await db.tour_slots.find_one({
+        "id": tour_data.tour_slot_id,
+        "is_available": True
+    })
+    if not slot:
+        raise HTTPException(status_code=404, detail="Tour slot not available")
     
-    # Get bookings for the day
-    start_of_day = check_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    end_of_day = start_of_day + timedelta(days=1)
-    
-    bookings = await db.bookings.find({
-        "resource_id": resource_id,
-        "tenant_id": current_user.tenant_id,
-        "status": {"$in": [BookingStatus.CONFIRMED, BookingStatus.PENDING]},
-        "start_time": {"$gte": start_of_day, "$lt": end_of_day}
+    # Check if slot is already booked
+    existing_tours = await db.tours.find({
+        "tour_slot_id": tour_data.tour_slot_id,
+        "status": {"$ne": "cancelled"}
     }).to_list(100)
     
-    return {
-        "date": start_date,
-        "resource_id": resource_id,
-        "bookings": [
-            {
-                "start_time": booking["start_time"].isoformat(),
-                "end_time": booking["end_time"].isoformat(),
-                "user_id": booking["user_id"]
-            }
-            for booking in bookings
-        ]
-    }
-
-# Check-in/Check-out routes
-@api_router.post("/checkin", response_model=CheckIn)
-async def check_in(
-    checkin_data: CheckInCreate,
-    current_user: User = Depends(get_current_user)
-):
-    # Check if user is already checked in
-    existing_checkin = await db.checkins.find_one({
-        "user_id": current_user.id,
-        "tenant_id": current_user.tenant_id,
-        "status": CheckInStatus.CHECKED_IN
-    })
+    if len(existing_tours) >= slot["max_bookings"]:
+        raise HTTPException(status_code=400, detail="Tour slot is fully booked")
     
-    if existing_checkin:
-        raise HTTPException(status_code=400, detail="Already checked in")
-    
-    checkin = CheckIn(
-        tenant_id=current_user.tenant_id,
-        user_id=current_user.id,
-        resource_id=checkin_data.resource_id
-    )
-    
-    await db.checkins.insert_one(checkin.dict())
-    return checkin
-
-@api_router.post("/checkout")
-async def check_out(current_user: User = Depends(get_current_user)):
-    # Find active check-in
-    checkin = await db.checkins.find_one({
-        "user_id": current_user.id,
-        "tenant_id": current_user.tenant_id,
-        "status": CheckInStatus.CHECKED_IN
-    })
-    
-    if not checkin:
-        raise HTTPException(status_code=404, detail="No active check-in found")
-    
-    checkout_time = datetime.utcnow()
-    duration_minutes = int((checkout_time - checkin["check_in_time"]).total_seconds() / 60)
-    
-    await db.checkins.update_one(
-        {"id": checkin["id"]},
-        {
-            "$set": {
-                "check_out_time": checkout_time,
-                "status": CheckInStatus.CHECKED_OUT,
-                "duration_minutes": duration_minutes
-            }
-        }
-    )
-    
-    return {"message": "Checked out successfully", "duration_minutes": duration_minutes}
-
-@api_router.get("/checkin/current")
-async def get_current_checkin(current_user: User = Depends(get_current_user)):
-    checkin = await db.checkins.find_one({
-        "user_id": current_user.id,
-        "tenant_id": current_user.tenant_id,
-        "status": CheckInStatus.CHECKED_IN
-    })
-    
-    if not checkin:
-        return {"checked_in": False}
-    
-    return {
-        "checked_in": True,
-        "checkin": CheckIn(**checkin),
-        "duration_minutes": int((datetime.utcnow() - checkin["check_in_time"]).total_seconds() / 60)
-    }
-
-# Event management routes
-@api_router.post("/events", response_model=Event)
-async def create_event(
-    event_data: EventCreate,
-    current_user: User = Depends(get_current_user)
-):
-    event = Event(**event_data.dict(), tenant_id=current_user.tenant_id, host_user_id=current_user.id)
-    await db.events.insert_one(event.dict())
-    return event
-
-@api_router.get("/events", response_model=List[Event])
-async def get_events(
-    upcoming_only: bool = True,
-    current_user: User = Depends(get_current_user)
-):
-    query = {"tenant_id": current_user.tenant_id, "is_public": True}
-    
-    if upcoming_only:
-        query["start_time"] = {"$gte": datetime.utcnow()}
-    
-    events = await db.events.find(query).sort("start_time", 1).to_list(1000)
-    return [Event(**event) for event in events]
-
-@api_router.post("/events/{event_id}/join")
-async def join_event(
-    event_id: str,
-    current_user: User = Depends(get_current_user)
-):
-    event = await db.events.find_one({
-        "id": event_id,
-        "tenant_id": current_user.tenant_id
-    })
-    
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
-    
-    if current_user.id in event.get("attendees", []):
-        raise HTTPException(status_code=400, detail="Already joined this event")
-    
-    # Check capacity
-    if event.get("max_attendees") and len(event.get("attendees", [])) >= event["max_attendees"]:
-        # Add to waitlist
-        await db.events.update_one(
-            {"id": event_id},
-            {"$addToSet": {"waitlist": current_user.id}}
+    # Create or find lead
+    lead_id = tour_data.lead_id
+    if not lead_id:
+        # Create new lead from tour booking
+        lead = Lead(
+            tenant_id=slot["tenant_id"],
+            first_name=tour_data.first_name,
+            last_name=tour_data.last_name,
+            email=tour_data.email,
+            phone=tour_data.phone,
+            company=tour_data.company,
+            status=LeadStatus.TOUR_SCHEDULED,
+            source="tour_booking",
+            notes=tour_data.notes,
+            tour_scheduled_at=slot["date"]
         )
-        return {"message": "Added to waitlist", "waitlisted": True}
+        await db.leads.insert_one(lead.dict())
+        lead_id = lead.id
     else:
-        # Add to attendees
-        await db.events.update_one(
-            {"id": event_id},
-            {"$addToSet": {"attendees": current_user.id}}
+        # Update existing lead
+        await db.leads.update_one(
+            {"id": lead_id},
+            {"$set": {
+                "status": LeadStatus.TOUR_SCHEDULED,
+                "tour_scheduled_at": slot["date"],
+                "updated_at": datetime.utcnow()
+            }}
         )
-        return {"message": "Successfully joined event", "joined": True}
+    
+    # Create tour booking
+    tour = Tour(
+        tenant_id=slot["tenant_id"],
+        lead_id=lead_id,
+        tour_slot_id=tour_data.tour_slot_id,
+        scheduled_at=slot["date"],
+        staff_user_id=slot["staff_user_id"]
+    )
+    await db.tours.insert_one(tour.dict())
+    
+    # TODO: Send confirmation email to lead and notification to staff
+    
+    return {"message": "Tour booked successfully", "tour_id": tour.id, "lead_id": lead_id}
 
-# Enhanced Dashboard routes with coworking analytics
+@api_router.get("/tours", response_model=List[Tour])
+async def get_tours(
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER, UserRole.FRONT_DESK]))
+):
+    tours = await db.tours.find({"tenant_id": current_user.tenant_id}).sort("scheduled_at", 1).to_list(1000)
+    return [Tour(**tour) for tour in tours]
+
+# Dashboard and Analytics
 @api_router.get("/dashboard/stats")
 async def get_dashboard_stats(
-    current_user: User = Depends(require_role([UserRole.TENANT_ADMIN, UserRole.STAFF]))
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER]))
 ):
     today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    this_week = today - timedelta(days=today.weekday())
     this_month = today.replace(day=1)
     
-    # Get counts
-    total_members = await db.users.count_documents({
+    # Get stats
+    total_leads = await db.leads.count_documents({"tenant_id": current_user.tenant_id})
+    
+    new_leads_this_month = await db.leads.count_documents({
         "tenant_id": current_user.tenant_id,
-        "role": UserRole.MEMBER
+        "created_at": {"$gte": this_month}
     })
     
-    active_members = await db.users.count_documents({
+    total_pages = await db.pages.count_documents({
         "tenant_id": current_user.tenant_id,
-        "role": UserRole.MEMBER,
-        "is_active": True,
-        "last_login": {"$gte": this_month}
+        "status": PageStatus.PUBLISHED
     })
     
-    total_resources = await db.resources.count_documents({
+    total_forms = await db.forms.count_documents({
         "tenant_id": current_user.tenant_id,
         "is_active": True
     })
     
-    today_bookings = await db.bookings.count_documents({
+    upcoming_tours = await db.tours.count_documents({
         "tenant_id": current_user.tenant_id,
-        "start_time": {"$gte": today, "$lt": today + timedelta(days=1)},
-        "status": BookingStatus.CONFIRMED
+        "scheduled_at": {"$gte": datetime.utcnow()},
+        "status": "scheduled"
     })
     
-    # Current check-ins
-    current_checkins = await db.checkins.count_documents({
-        "tenant_id": current_user.tenant_id,
-        "status": CheckInStatus.CHECKED_IN
-    })
-    
-    # Upcoming events
-    upcoming_events = await db.events.count_documents({
-        "tenant_id": current_user.tenant_id,
-        "start_time": {"$gte": datetime.utcnow(), "$lt": datetime.utcnow() + timedelta(days=7)}
-    })
-    
-    # Revenue this month (simplified)
-    monthly_revenue = await db.bookings.aggregate([
-        {
-            "$match": {
-                "tenant_id": current_user.tenant_id,
-                "status": BookingStatus.CONFIRMED,
-                "created_at": {"$gte": this_month},
-                "total_cost": {"$ne": None}
-            }
-        },
-        {
-            "$group": {
-                "_id": None,
-                "total": {"$sum": "$total_cost"}
-            }
-        }
-    ]).to_list(1)
-    
-    monthly_revenue_total = monthly_revenue[0]["total"] if monthly_revenue else 0
-    
-    # Get recent bookings
-    recent_bookings_raw = await db.bookings.find({
+    # Recent leads
+    recent_leads = await db.leads.find({
         "tenant_id": current_user.tenant_id
     }).sort("created_at", -1).limit(5).to_list(5)
     
-    # Convert to serializable format
-    recent_bookings = []
-    for booking in recent_bookings_raw:
-        recent_bookings.append({
-            "id": booking["id"],
-            "resource_id": booking["resource_id"],
-            "user_id": booking["user_id"],
-            "created_at": booking["created_at"].isoformat(),
-            "start_time": booking["start_time"].isoformat(),
-            "status": booking["status"],
-            "total_cost": booking.get("total_cost")
-        })
+    # Conversion stats
+    converted_leads = await db.leads.count_documents({
+        "tenant_id": current_user.tenant_id,
+        "status": LeadStatus.CONVERTED,
+        "created_at": {"$gte": this_month}
+    })
+    
+    conversion_rate = (converted_leads / new_leads_this_month * 100) if new_leads_this_month > 0 else 0
     
     return {
-        "total_members": total_members,
-        "active_members": active_members,
-        "total_resources": total_resources,
-        "today_bookings": today_bookings,
-        "current_checkins": current_checkins,
-        "upcoming_events": upcoming_events,
-        "monthly_revenue": round(monthly_revenue_total, 2),
-        "recent_bookings": recent_bookings
+        "total_leads": total_leads,
+        "new_leads_this_month": new_leads_this_month,
+        "total_pages": total_pages,
+        "total_forms": total_forms,
+        "upcoming_tours": upcoming_tours,
+        "conversion_rate": round(conversion_rate, 1),
+        "recent_leads": [
+            {
+                "id": lead["id"],
+                "name": f"{lead['first_name']} {lead['last_name']}",
+                "email": lead["email"],
+                "status": lead["status"],
+                "source": lead.get("source"),
+                "created_at": lead["created_at"].isoformat()
+            }
+            for lead in recent_leads
+        ]
     }
 
-@api_router.get("/dashboard/analytics")
-async def get_analytics(
-    current_user: User = Depends(require_role([UserRole.TENANT_ADMIN, UserRole.STAFF]))
-):
-    """Get detailed analytics for the dashboard"""
-    now = datetime.utcnow()
-    last_30_days = now - timedelta(days=30)
+# Public API routes (no auth required)
+@api_router.get("/public/{tenant_subdomain}/pages/{slug}")
+async def get_public_page(tenant_subdomain: str, slug: str):
+    # Find tenant
+    tenant = await db.tenants.find_one({"subdomain": tenant_subdomain})
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
     
-    # Resource utilization
-    resource_usage = await db.bookings.aggregate([
-        {
-            "$match": {
-                "tenant_id": current_user.tenant_id,
-                "status": BookingStatus.CONFIRMED,
-                "start_time": {"$gte": last_30_days}
-            }
-        },
-        {
-            "$group": {
-                "_id": "$resource_id",
-                "bookings": {"$sum": 1},
-                "total_hours": {
-                    "$sum": {
-                        "$divide": [
-                            {"$subtract": ["$end_time", "$start_time"]},
-                            3600000  # Convert milliseconds to hours
-                        ]
-                    }
-                }
-            }
-        },
-        {"$sort": {"bookings": -1}}
-    ]).to_list(10)
+    # Get page
+    page = await db.pages.find_one({
+        "tenant_id": tenant["id"],
+        "slug": slug,
+        "status": PageStatus.PUBLISHED
+    })
     
-    # Member activity
-    member_activity = await db.checkins.aggregate([
-        {
-            "$match": {
-                "tenant_id": current_user.tenant_id,
-                "check_in_time": {"$gte": last_30_days}
-            }
-        },
-        {
-            "$group": {
-                "_id": {
-                    "$dateToString": {
-                        "format": "%Y-%m-%d",
-                        "date": "$check_in_time"
-                    }
-                },
-                "checkins": {"$sum": 1},
-                "unique_members": {"$addToSet": "$user_id"}
-            }
-        },
-        {
-            "$project": {
-                "date": "$_id",
-                "checkins": 1,
-                "unique_members": {"$size": "$unique_members"}
-            }
-        },
-        {"$sort": {"date": 1}}
-    ]).to_list(30)
+    if not page:
+        raise HTTPException(status_code=404, detail="Page not found")
     
     return {
-        "resource_usage": resource_usage,
-        "member_activity": member_activity
+        "page": Page(**page),
+        "tenant": {
+            "name": tenant["name"],
+            "branding": tenant.get("branding", {}),
+            "industry_module": tenant["industry_module"]
+        }
     }
+
+@api_router.get("/public/{tenant_subdomain}/forms/{form_id}")
+async def get_public_form(tenant_subdomain: str, form_id: str):
+    # Find tenant
+    tenant = await db.tenants.find_one({"subdomain": tenant_subdomain})
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    
+    # Get form
+    form = await db.forms.find_one({
+        "id": form_id,
+        "tenant_id": tenant["id"],
+        "is_active": True
+    })
+    
+    if not form:
+        raise HTTPException(status_code=404, detail="Form not found")
+    
+    return Form(**form)
 
 # Include the router in the main app
 app.include_router(api_router)
