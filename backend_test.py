@@ -322,9 +322,10 @@ class ClaudePlatformTester:
             token=token
         )
         if success1:
-            print(f"   Available blocks: {len(response1)} content blocks")
-            if response1:
-                block_types = [block.get('id') for block in response1]
+            blocks = response1.get('blocks', []) if isinstance(response1, dict) else []
+            print(f"   Available blocks: {len(blocks)} content blocks")
+            if blocks:
+                block_types = [block.get('id') for block in blocks]
                 expected_blocks = ['coworking_hero', 'membership_pricing', 'member_testimonials', 
                                  'space_gallery', 'community_events', 'amenities_grid', 
                                  'community_stats', 'cta_membership']
