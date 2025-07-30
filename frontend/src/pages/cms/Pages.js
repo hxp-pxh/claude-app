@@ -178,21 +178,60 @@ const Pages = () => {
                     </span>
                   </div>
                 )}
-                {page.layout_settings && (
-                  <div className="absolute bottom-2 left-2">
-                    <div className="flex items-center space-x-1">
-                      {page.layout_settings.show_header && (
-                        <span className="inline-flex items-center px-1 py-0.5 rounded text-xs bg-blue-100 text-blue-800">H</span>
-                      )}
-                      {page.layout_settings.show_navigation && (
-                        <span className="inline-flex items-center px-1 py-0.5 rounded text-xs bg-purple-100 text-purple-800">N</span>
-                      )}
-                      {page.layout_settings.show_footer && (
-                        <span className="inline-flex items-center px-1 py-0.5 rounded text-xs bg-orange-100 text-orange-800">F</span>
-                      )}
+                  {page.layout_settings && (
+                    <div className="absolute bottom-2 left-2">
+                      <div className="flex items-center space-x-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Toggle layout setting
+                            const newSettings = { ...page.layout_settings, show_header: !page.layout_settings.show_header };
+                            // TODO: Update page layout settings via API
+                          }}
+                          className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs transition-all ${
+                            page.layout_settings.show_header 
+                              ? 'bg-blue-100 text-blue-800 hover:bg-blue-200' 
+                              : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+                          }`}
+                          title={`Header ${page.layout_settings.show_header ? 'Enabled' : 'Disabled'} - Click to toggle`}
+                        >
+                          H
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Toggle layout setting
+                            const newSettings = { ...page.layout_settings, show_navigation: !page.layout_settings.show_navigation };
+                            // TODO: Update page layout settings via API
+                          }}
+                          className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs transition-all ${
+                            page.layout_settings.show_navigation 
+                              ? 'bg-purple-100 text-purple-800 hover:bg-purple-200' 
+                              : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+                          }`}
+                          title={`Navigation ${page.layout_settings.show_navigation ? 'Enabled' : 'Disabled'} - Click to toggle`}
+                        >
+                          N
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Toggle layout setting
+                            const newSettings = { ...page.layout_settings, show_footer: !page.layout_settings.show_footer };
+                            // TODO: Update page layout settings via API
+                          }}
+                          className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs transition-all ${
+                            page.layout_settings.show_footer 
+                              ? 'bg-orange-100 text-orange-800 hover:bg-orange-200' 
+                              : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+                          }`}
+                          title={`Footer ${page.layout_settings.show_footer ? 'Enabled' : 'Disabled'} - Click to toggle`}
+                        >
+                          F
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
 
               {/* Page Info */}
