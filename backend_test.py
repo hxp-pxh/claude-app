@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import json
 
 class SpaceManagementAPITester:
-    def __init__(self, base_url="https://2faade16-7786-4166-afbe-d8bacd841605.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://97977e23-90a3-4486-9cbe-8b5f397a2e68.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.admin_token = None
         self.member_token = None
