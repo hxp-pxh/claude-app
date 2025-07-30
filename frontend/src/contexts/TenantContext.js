@@ -30,20 +30,28 @@ export const TenantProvider = ({ children }) => {
 
   // Load tenant module configuration
   const loadModuleConfig = async () => {
-    if (!isAuthenticated || !user) {
+    if (!isAuthenticated || !user?.tenant_id) {
+      console.log('🔄 TenantContext: Skipping module load - not authenticated or no tenant_id', { isAuthenticated, userId: user?.id, tenantId: user?.tenant_id });
       setModuleConfig(null);
       return;
     }
 
+    console.log('🔄 TenantContext: Starting module config load for tenant', user.tenant_id);
     setLoading(true);
     setError(null);
 
     try {
       const response = await api.get('/platform/experience');
       setModuleConfig(response.data);
-      console.log('🎨 Loaded module config:', response.data.module_info);
+      console.log('🎨 TenantContext: Module config loaded successfully!', {
+        moduleName: response.data.module_info?.name,
+        industry: response.data.module_info?.industry,
+        terminologyCount: Object.keys(response.data.terminology || {}).length,
+        featuresCount: response.data.features?.length || 0,
+        navigationCount: response.data.navigation?.length || 0
+      });
     } catch (err) {
-      console.error('Failed to load module config:', err);
+      console.error('❌ TenantContext: Failed to load module config:', err);
       setError('Failed to load tenant configuration');
       // Set fallback config for graceful degradation
       setModuleConfig({
