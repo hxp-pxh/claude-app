@@ -738,6 +738,72 @@ const SiteConfigurationWidget = ({ isOpen, onClose }) => {
                     </div>
                   </div>
                 )}
+
+                {/* Domain Tab */}
+                {activeTab === 'domain' && domainConfig && (
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-medium mb-4">Domain Settings</h3>
+                    
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                      <div className="flex">
+                        <Link className="h-5 w-5 text-blue-600 mr-3 mt-0.5" />
+                        <div>
+                          <h4 className="text-sm font-medium text-blue-900">Default Domain</h4>
+                          <p className="text-sm text-blue-700 mt-1">{domainConfig.default_domain}</p>
+                          <p className="text-xs text-blue-600 mt-2">This is your default platform domain that's always available.</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Custom Domain
+                      </label>
+                      <div className="space-y-3">
+                        <input
+                          type="text"
+                          value={domainConfig.custom_domain || ''}
+                          onChange={(e) => setDomainConfig(prev => ({ ...prev, custom_domain: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          placeholder="yourdomain.com"
+                        />
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <div className={`w-3 h-3 rounded-full ${domainConfig.domain_verified ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+                            <span className="text-sm text-gray-600">
+                              {domainConfig.domain_verified ? 'Domain Verified' : 'Domain Not Verified'}
+                            </span>
+                          </div>
+                          <button
+                            onClick={async () => {
+                              try {
+                                await api.post('/tenant/custom-domain', { custom_domain: domainConfig.custom_domain });
+                                await loadDomainConfig(); // Reload to get updated status
+                                alert('Domain updated successfully!');
+                              } catch (error) {
+                                console.error('Failed to update domain:', error);
+                                alert('Failed to update domain. Please try again.');
+                              }
+                            }}
+                            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                          >
+                            Update Domain
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">Setup Instructions</h4>
+                      <div className="text-sm text-gray-600 space-y-2">
+                        <p><strong>1.</strong> Purchase your domain from a domain registrar</p>
+                        <p><strong>2.</strong> Add a CNAME record pointing to: <code className="bg-gray-200 px-2 py-1 rounded">platform.yourcompany.com</code></p>
+                        <p><strong>3.</strong> Update your domain above and wait for verification</p>
+                        <p><strong>4.</strong> Verification can take up to 24 hours</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
