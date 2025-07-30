@@ -34,6 +34,7 @@ const CoworkingPageBuilder = ({ pageId, initialBlocks = [] }) => {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [domainConfig, setDomainConfig] = useState(null);
 
   const colorScheme = getColorScheme();
 
