@@ -598,12 +598,31 @@ const SiteConfigurationWidget = ({ isOpen, onClose }) => {
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Logo URL
                         </label>
-                        <input
-                          type="text"
-                          value={config.branding.logo_url}
-                          onChange={(e) => updateConfig('branding', 'logo_url', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        />
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            value={config.branding.logo_url}
+                            onChange={(e) => updateConfig('branding', 'logo_url', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            placeholder="https://example.com/logo.png"
+                          />
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleImageUpload(e, 'logo')}
+                              className="hidden"
+                              id="logo-upload"
+                            />
+                            <label
+                              htmlFor="logo-upload"
+                              className="flex items-center px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer"
+                            >
+                              <ImageIcon className="h-4 w-4 mr-2" />
+                              Upload Logo
+                            </label>
+                          </div>
+                        </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -614,6 +633,7 @@ const SiteConfigurationWidget = ({ isOpen, onClose }) => {
                           value={config.branding.logo_alt}
                           onChange={(e) => updateConfig('branding', 'logo_alt', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          placeholder="Your Company Name"
                         />
                       </div>
                     </div>
@@ -622,12 +642,31 @@ const SiteConfigurationWidget = ({ isOpen, onClose }) => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Favicon URL
                       </label>
-                      <input
-                        type="text"
-                        value={config.branding.favicon_url}
-                        onChange={(e) => updateConfig('branding', 'favicon_url', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      />
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          value={config.branding.favicon_url}
+                          onChange={(e) => updateConfig('branding', 'favicon_url', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          placeholder="https://example.com/favicon.ico"
+                        />
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="file"
+                            accept="image/*,.ico"
+                            onChange={(e) => handleImageUpload(e, 'favicon')}
+                            className="hidden"
+                            id="favicon-upload"
+                          />
+                          <label
+                            htmlFor="favicon-upload"
+                            className="flex items-center px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer"
+                          >
+                            <ImageIcon className="h-4 w-4 mr-2" />
+                            Upload Favicon
+                          </label>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
