@@ -151,229 +151,120 @@ const Dashboard = () => {
     { name: translateTerm('Conversion Rate'), value: `${stats?.conversion_rate || 0}%`, icon: TrendingUp, change: '+8%' },
   ];
 
-  const statCards = [
-    {
-      name: 'Total Leads',
-      value: stats?.total_leads || 0,
-      icon: UserPlus,
-      color: 'text-blue-600',
-      bg: 'bg-blue-100',
-      href: '/leads'
-    },
-    {
-      name: 'New This Month',
-      value: stats?.new_leads_this_month || 0,
-      icon: TrendingUp,
-      color: 'text-green-600',
-      bg: 'bg-green-100',
-      href: '/leads'
-    },
-    {
-      name: 'Published Pages',
-      value: stats?.total_pages || 0,
-      icon: Globe,
-      color: 'text-purple-600',
-      bg: 'bg-purple-100',
-      href: '/cms/pages'
-    },
-    {
-      name: 'Active Forms',
-      value: stats?.total_forms || 0,
-      icon: FileText,
-      color: 'text-orange-600',
-      bg: 'bg-orange-100',
-      href: '/forms'
-    },
-    {
-      name: 'Upcoming Tours',
-      value: stats?.upcoming_tours || 0,
-      icon: Calendar,
-      color: 'text-cyan-600',
-      bg: 'bg-cyan-100',
-      href: '/tours'
-    },
-    {
-      name: 'Conversion Rate',
-      value: `${stats?.conversion_rate || 0}%`,
-      icon: BarChart3,
-      color: 'text-indigo-600',
-      bg: 'bg-indigo-100',
-      href: '/analytics'
-    }
-  ];
-
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-600">
-          Welcome to your space management platform
-        </p>
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold" style={{ color: colorScheme.text }}>
+            {translateTerm('Dashboard')}
+          </h1>
+          <p className="text-gray-600 mt-1">
+            {translateTerm('Welcome to')} {moduleInfo.name}
+          </p>
+        </div>
+        <div className="text-sm text-gray-500">
+          {format(new Date(), 'EEEE, MMMM d, yyyy')}
+        </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {statCards.map((item) => {
-          const Icon = item.icon;
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {fallbackStats.map((stat) => {
+          const IconComponent = stat.icon;
           return (
-            <Link
-              key={item.name}
-              to={item.href}
-              className="relative bg-white pt-5 px-4 pb-12 sm:pt-6 sm:px-6 shadow rounded-lg overflow-hidden hover:shadow-md transition-shadow"
-            >
-              <dt>
-                <div className={`absolute ${item.bg} rounded-md p-3`}>
-                  <Icon className={`h-6 w-6 ${item.color}`} aria-hidden="true" />
+            <div key={stat.name} className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">{stat.name}</p>
+                  <p className="text-2xl font-bold mt-2" style={{ color: colorScheme.text }}>{stat.value}</p>
                 </div>
-                <p className="ml-16 text-sm font-medium text-gray-500 truncate">
-                  {item.name}
-                </p>
-              </dt>
-              <dd className="ml-16 pb-6 flex items-baseline sm:pb-7">
-                <p className="text-2xl font-semibold text-gray-900">{item.value}</p>
-              </dd>
-            </Link>
+                <div className="p-3 rounded-full" style={{ backgroundColor: `${colorScheme.primary}15` }}>
+                  <IconComponent className="h-6 w-6" style={{ color: colorScheme.primary }} />
+                </div>
+              </div>
+              <div className="mt-4 flex items-center">
+                <span className="text-sm font-medium text-green-600">{stat.change}</span>
+                <span className="text-sm text-gray-500 ml-2">{translateTerm('from last month')}</span>
+              </div>
+            </div>
           );
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Leads */}
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Recent Leads
-              </h3>
-              <Link
-                to="/leads"
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-              >
-                View all
-              </Link>
-            </div>
-            
-            {stats?.recent_leads?.length > 0 ? (
-              <div className="space-y-4">
-                {stats.recent_leads.map((lead) => (
-                  <div
-                    key={lead.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-sm font-medium">
-                          {lead.name.charAt(0)}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {lead.name}
-                        </p>
-                        <p className="text-sm text-gray-500">{lead.email}</p>
-                      </div>
+      {/* Module-specific Dashboard Widgets */}
+      {dashboardConfig.widgets && dashboardConfig.widgets.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {dashboardConfig.widgets.map(renderWidget)}
+        </div>
+      )}
+
+      {/* Quick Actions */}
+      {dashboardConfig.quick_actions && dashboardConfig.quick_actions.length > 0 && (
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold mb-4" style={{ color: colorScheme.text }}>
+            {translateTerm('Quick Actions')}
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {dashboardConfig.quick_actions.map((action) => {
+              const IconComponent = getMetricIcon(action.name);
+              return (
+                <button
+                  key={action.name}
+                  className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
+                  style={{ borderColor: `${colorScheme.primary}30` }}
+                >
+                  <IconComponent className="h-6 w-6 mb-2" style={{ color: colorScheme.primary }} />
+                  <p className="text-sm font-medium" style={{ color: colorScheme.text }}>
+                    {translateTerm(action.name)}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Recent Activity */}
+      {stats?.recent_leads && stats.recent_leads.length > 0 && (
+        <div className="bg-white rounded-lg shadow">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold" style={{ color: colorScheme.text }}>
+              {translateTerm('Recent Leads')}
+            </h3>
+          </div>
+          <div className="p-6">
+            <div className="space-y-4">
+              {stats.recent_leads.slice(0, 5).map((lead) => (
+                <div key={lead.id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: `${colorScheme.primary}15` }}>
+                      <UserPlus className="h-4 w-4" style={{ color: colorScheme.primary }} />
                     </div>
-                    <div className="text-right">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        lead.status === 'converted' ? 'bg-green-100 text-green-800' :
-                        lead.status === 'tour_completed' ? 'bg-blue-100 text-blue-800' :
-                        lead.status === 'tour_scheduled' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {lead.status.replace('_', ' ')}
-                      </span>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {format(new Date(lead.created_at), 'MMM d')}
-                      </p>
+                    <div>
+                      <p className="font-medium" style={{ color: colorScheme.text }}>{lead.name}</p>
+                      <p className="text-sm text-gray-500">{lead.email}</p>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-center py-8">No recent leads</p>
-            )}
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-              Quick Actions
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <Link
-                to="/cms/pages/new"
-                className="flex flex-col items-center p-4 border-2 border-gray-300 border-dashed rounded-lg hover:border-gray-400 transition-colors"
+                  <div className="text-right">
+                    <p className="text-sm text-gray-500">{translateTerm(lead.status)}</p>
+                    <p className="text-xs text-gray-400">{format(new Date(lead.created_at), 'MMM d')}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <Link 
+                to="/leads" 
+                className="text-sm font-medium hover:underline"
+                style={{ color: colorScheme.primary }}
               >
-                <Globe className="h-8 w-8 text-gray-400 mb-2" />
-                <span className="text-sm font-medium text-gray-900">New Page</span>
+                {translateTerm('View all leads')} →
               </Link>
-              
-              <Link
-                to="/forms/new"
-                className="flex flex-col items-center p-4 border-2 border-gray-300 border-dashed rounded-lg hover:border-gray-400 transition-colors"
-              >
-                <FileText className="h-8 w-8 text-gray-400 mb-2" />
-                <span className="text-sm font-medium text-gray-900">New Form</span>
-              </Link>
-              
-              <Link
-                to="/tours"
-                className="flex flex-col items-center p-4 border-2 border-gray-300 border-dashed rounded-lg hover:border-gray-400 transition-colors"
-              >
-                <Calendar className="h-8 w-8 text-gray-400 mb-2" />
-                <span className="text-sm font-medium text-gray-900">Schedule Tour</span>
-              </Link>
-              
-              <button className="flex flex-col items-center p-4 border-2 border-gray-300 border-dashed rounded-lg hover:border-gray-400 transition-colors">
-                <Eye className="h-8 w-8 text-gray-400 mb-2" />
-                <span className="text-sm font-medium text-gray-900">Preview Site</span>
-              </button>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Platform Overview */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-            Platform Overview
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-blue-100 rounded-lg mb-3">
-                <Globe className="w-6 h-6 text-blue-600" />
-              </div>
-              <h4 className="text-lg font-medium text-gray-900 mb-1">Website Builder</h4>
-              <p className="text-sm text-gray-600">
-                Create beautiful, responsive websites with our drag-and-drop builder
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-green-100 rounded-lg mb-3">
-                <Users className="w-6 h-6 text-green-600" />
-              </div>
-              <h4 className="text-lg font-medium text-gray-900 mb-1">Lead Management</h4>
-              <p className="text-sm text-gray-600">
-                Capture, nurture, and convert leads with our integrated CRM
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-purple-100 rounded-lg mb-3">
-                <BarChart3 className="w-6 h-6 text-purple-600" />
-              </div>
-              <h4 className="text-lg font-medium text-gray-900 mb-1">Analytics</h4>
-              <p className="text-sm text-gray-600">
-                Track performance and optimize your space business
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 };
