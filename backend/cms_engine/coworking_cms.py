@@ -4,7 +4,7 @@ Provides industry-specific content blocks and page building capabilities
 """
 from typing import Dict, Any, List, Optional
 from datetime import datetime
-from ..kernels.base_kernel import BaseKernel
+from kernels.base_kernel import BaseKernel
 
 
 class CoworkingCMSEngine(BaseKernel):
