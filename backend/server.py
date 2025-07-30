@@ -15,6 +15,9 @@ from passlib.context import CryptContext
 from enum import Enum
 import json
 
+# Import the new core platform
+from claude_platform_core import initialize_platform, get_platform_core
+
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
