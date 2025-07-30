@@ -32,8 +32,8 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <div className="App">
         <BrowserRouter>
-          <TenantProvider>
-            <AuthProvider>
+          <AuthProvider>
+            <TenantProvider>
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
