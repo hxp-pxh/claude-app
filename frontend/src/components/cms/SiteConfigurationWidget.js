@@ -541,7 +541,7 @@ const SiteConfigurationWidget = ({ isOpen, onClose }) => {
                             />
                             
                             <div className="space-y-2">
-                              {section.links.map((link, linkIndex) => (
+                              {(section.links || []).map((link, linkIndex) => (
                                 <div key={linkIndex} className="flex items-center space-x-2">
                                   <input
                                     type="text"
