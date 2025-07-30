@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Users, Building, Calendar, TrendingUp, UserCheck, CalendarDays, DollarSign } from 'lucide-react';
+import { Globe, FileText, UserPlus, Calendar, TrendingUp, BarChart3, Eye, Users } from 'lucide-react';
 import api from '../services/api';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
@@ -9,12 +9,6 @@ const Dashboard = () => {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: () => api.get('/dashboard/stats').then(res => res.data)
-  });
-
-  const { data: analytics } = useQuery({
-    queryKey: ['dashboard-analytics'],
-    queryFn: () => api.get('/dashboard/analytics').then(res => res.data),
-    enabled: stats && (stats.total_members > 0 || stats.total_resources > 0)
   });
 
   if (isLoading) {
@@ -27,68 +21,52 @@ const Dashboard = () => {
 
   const statCards = [
     {
-      name: 'Total Members',
-      value: stats?.total_members || 0,
-      icon: Users,
+      name: 'Total Leads',
+      value: stats?.total_leads || 0,
+      icon: UserPlus,
       color: 'text-blue-600',
       bg: 'bg-blue-100',
-      href: '/members'
+      href: '/leads'
     },
     {
-      name: 'Active Members',
-      value: stats?.active_members || 0,
-      icon: UserCheck,
+      name: 'New This Month',
+      value: stats?.new_leads_this_month || 0,
+      icon: TrendingUp,
       color: 'text-green-600',
       bg: 'bg-green-100',
-      href: '/members'
+      href: '/leads'
     },
     {
-      name: 'Resources',
-      value: stats?.total_resources || 0,
-      icon: Building,
+      name: 'Published Pages',
+      value: stats?.total_pages || 0,
+      icon: Globe,
       color: 'text-purple-600',
       bg: 'bg-purple-100',
-      href: '/resources'
+      href: '/cms/pages'
     },
     {
-      name: 'Today\'s Bookings',
-      value: stats?.today_bookings || 0,
-      icon: Calendar,
+      name: 'Active Forms',
+      value: stats?.total_forms || 0,
+      icon: FileText,
       color: 'text-orange-600',
       bg: 'bg-orange-100',
-      href: '/bookings'
+      href: '/forms'
     },
     {
-      name: 'Current Check-ins',
-      value: stats?.current_checkins || 0,
-      icon: UserCheck,
+      name: 'Upcoming Tours',
+      value: stats?.upcoming_tours || 0,
+      icon: Calendar,
       color: 'text-cyan-600',
       bg: 'bg-cyan-100',
-      href: '/checkin'
+      href: '/tours'
     },
     {
-      name: 'Upcoming Events',
-      value: stats?.upcoming_events || 0,
-      icon: CalendarDays,
-      color: 'text-pink-600',
-      bg: 'bg-pink-100',
-      href: '/events'
-    },
-    {
-      name: 'Monthly Revenue',
-      value: `$${stats?.monthly_revenue || 0}`,
-      icon: DollarSign,
-      color: 'text-emerald-600',
-      bg: 'bg-emerald-100',
-      href: '/bookings'
-    },
-    {
-      name: 'Growth',
-      value: '+12%',
-      icon: TrendingUp,
+      name: 'Conversion Rate',
+      value: `${stats?.conversion_rate || 0}%`,
+      icon: BarChart3,
       color: 'text-indigo-600',
       bg: 'bg-indigo-100',
-      href: '/dashboard'
+      href: '/analytics'
     }
   ];
 
@@ -97,12 +75,12 @@ const Dashboard = () => {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         <p className="mt-1 text-sm text-gray-600">
-          Welcome to your coworking space management dashboard
+          Welcome to your space management platform
         </p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {statCards.map((item) => {
           const Icon = item.icon;
           return (
@@ -128,142 +106,139 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Activity */}
+        {/* Recent Leads */}
         <div className="bg-white shadow rounded-lg">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-              Recent Bookings
-            </h3>
-            {stats?.recent_bookings?.length > 0 ? (
-              <div className="flow-root">
-                <ul className="-mb-8">
-                  {stats.recent_bookings.map((booking, index) => (
-                    <li key={booking.id}>
-                      <div className="relative pb-8">
-                        {index !== stats.recent_bookings.length - 1 && (
-                          <span
-                            className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
-                            aria-hidden="true"
-                          />
-                        )}
-                        <div className="relative flex space-x-3">
-                          <div>
-                            <span className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white">
-                              <Calendar className="h-4 w-4 text-white" />
-                            </span>
-                          </div>
-                          <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
-                            <div>
-                              <p className="text-sm text-gray-500">
-                                New booking{' '}
-                                <span className="font-medium text-gray-900">
-                                  {booking.resource_id.substring(0, 8)}...
-                                </span>
-                                {booking.total_cost && (
-                                  <span className="text-green-600 font-medium">
-                                    {' '}• ${booking.total_cost}
-                                  </span>
-                                )}
-                              </p>
-                            </div>
-                            <div className="text-right text-sm whitespace-nowrap text-gray-500">
-                              {format(new Date(booking.created_at), 'MMM d, HH:mm')}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              <p className="text-gray-500 text-center py-8">No recent bookings</p>
-            )}
-          </div>
-        </div>
-
-        {/* Resource Usage Chart */}
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-              Popular Resources
-            </h3>
-            {analytics?.resource_usage?.length > 0 ? (
-              <div className="space-y-3">
-                {analytics.resource_usage.slice(0, 5).map((resource, index) => (
-                  <div key={resource._id} className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg leading-6 font-medium text-gray-900">
+                Recent Leads
+              </h3>
+              <Link
+                to="/leads"
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                View all
+              </Link>
+            </div>
+            
+            {stats?.recent_leads?.length > 0 ? (
+              <div className="space-y-4">
+                {stats.recent_leads.map((lead) => (
+                  <div
+                    key={lead.id}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
                     <div className="flex items-center space-x-3">
-                      <div className="text-sm font-medium text-gray-900">
-                        #{index + 1}
+                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-sm font-medium">
+                          {lead.name.charAt(0)}
+                        </span>
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-900">
-                          Resource {resource._id.substring(0, 8)}...
+                          {lead.name}
                         </p>
-                        <p className="text-sm text-gray-500">
-                          {Math.round(resource.total_hours)} hours used
-                        </p>
+                        <p className="text-sm text-gray-500">{lead.email}</p>
                       </div>
                     </div>
-                    <div className="text-sm font-medium text-blue-600">
-                      {resource.bookings} bookings
+                    <div className="text-right">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        lead.status === 'converted' ? 'bg-green-100 text-green-800' :
+                        lead.status === 'tour_completed' ? 'bg-blue-100 text-blue-800' :
+                        lead.status === 'tour_scheduled' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {lead.status.replace('_', ' ')}
+                      </span>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {format(new Date(lead.created_at), 'MMM d')}
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-center py-8">No usage data available</p>
+              <p className="text-gray-500 text-center py-8">No recent leads</p>
             )}
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="bg-white shadow rounded-lg">
+          <div className="px-4 py-5 sm:p-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+              Quick Actions
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <Link
+                to="/cms/pages/new"
+                className="flex flex-col items-center p-4 border-2 border-gray-300 border-dashed rounded-lg hover:border-gray-400 transition-colors"
+              >
+                <Globe className="h-8 w-8 text-gray-400 mb-2" />
+                <span className="text-sm font-medium text-gray-900">New Page</span>
+              </Link>
+              
+              <Link
+                to="/forms/new"
+                className="flex flex-col items-center p-4 border-2 border-gray-300 border-dashed rounded-lg hover:border-gray-400 transition-colors"
+              >
+                <FileText className="h-8 w-8 text-gray-400 mb-2" />
+                <span className="text-sm font-medium text-gray-900">New Form</span>
+              </Link>
+              
+              <Link
+                to="/tours"
+                className="flex flex-col items-center p-4 border-2 border-gray-300 border-dashed rounded-lg hover:border-gray-400 transition-colors"
+              >
+                <Calendar className="h-8 w-8 text-gray-400 mb-2" />
+                <span className="text-sm font-medium text-gray-900">Schedule Tour</span>
+              </Link>
+              
+              <button className="flex flex-col items-center p-4 border-2 border-gray-300 border-dashed rounded-lg hover:border-gray-400 transition-colors">
+                <Eye className="h-8 w-8 text-gray-400 mb-2" />
+                <span className="text-sm font-medium text-gray-900">Preview Site</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Quick Actions */}
+      {/* Platform Overview */}
       <div className="bg-white shadow rounded-lg">
         <div className="px-4 py-5 sm:p-6">
           <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-            Quick Actions
+            Platform Overview
           </h3>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Link
-              to="/bookings"
-              className="relative block w-full border-2 border-gray-300 border-dashed rounded-lg p-6 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-            >
-              <Calendar className="mx-auto h-8 w-8 text-gray-400" />
-              <span className="mt-2 block text-sm font-medium text-gray-900">
-                New Booking
-              </span>
-            </Link>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-blue-100 rounded-lg mb-3">
+                <Globe className="w-6 h-6 text-blue-600" />
+              </div>
+              <h4 className="text-lg font-medium text-gray-900 mb-1">Website Builder</h4>
+              <p className="text-sm text-gray-600">
+                Create beautiful, responsive websites with our drag-and-drop builder
+              </p>
+            </div>
             
-            <Link
-              to="/events"
-              className="relative block w-full border-2 border-gray-300 border-dashed rounded-lg p-6 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-            >
-              <CalendarDays className="mx-auto h-8 w-8 text-gray-400" />
-              <span className="mt-2 block text-sm font-medium text-gray-900">
-                Create Event
-              </span>
-            </Link>
+            <div className="text-center">
+              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-green-100 rounded-lg mb-3">
+                <Users className="w-6 h-6 text-green-600" />
+              </div>
+              <h4 className="text-lg font-medium text-gray-900 mb-1">Lead Management</h4>
+              <p className="text-sm text-gray-600">
+                Capture, nurture, and convert leads with our integrated CRM
+              </p>
+            </div>
             
-            <Link
-              to="/checkin"
-              className="relative block w-full border-2 border-gray-300 border-dashed rounded-lg p-6 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-            >
-              <UserCheck className="mx-auto h-8 w-8 text-gray-400" />
-              <span className="mt-2 block text-sm font-medium text-gray-900">
-                Check In
-              </span>
-            </Link>
-
-            <Link
-              to="/community"
-              className="relative block w-full border-2 border-gray-300 border-dashed rounded-lg p-6 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-            >
-              <Users className="mx-auto h-8 w-8 text-gray-400" />
-              <span className="mt-2 block text-sm font-medium text-gray-900">
-                Browse Community
-              </span>
-            </Link>
+            <div className="text-center">
+              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-purple-100 rounded-lg mb-3">
+                <BarChart3 className="w-6 h-6 text-purple-600" />
+              </div>
+              <h4 className="text-lg font-medium text-gray-900 mb-1">Analytics</h4>
+              <p className="text-sm text-gray-600">
+                Track performance and optimize your space business
+              </p>
+            </div>
           </div>
         </div>
       </div>
