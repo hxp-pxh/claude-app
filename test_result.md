@@ -321,7 +321,7 @@
 
 ## test_plan:
   current_focus:
-    - "Enhanced Coworking CMS System Implementation"
+    - "Frontend Integration for Enhanced CMS System"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
