@@ -1307,6 +1307,63 @@ async def set_custom_domain(
         "domain_verified": False
     }
 
+# Default Homepage Creation
+@api_router.post("/cms/create-default-homepage")
+async def create_default_homepage(
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER]))
+):
+    """Create a default homepage with premade template"""
+    cms_engine = CoworkingCMSEngine(db)
+    
+    try:
+        page_id = await cms_engine.create_default_homepage(current_user.tenant_id)
+        return {
+            "message": "Default homepage created successfully",
+            "page_id": page_id,
+            "homepage_url": f"/pages/{page_id}"
+        }
+    except Exception as e:
+        print(f"Error creating default homepage: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to create default homepage")
+
+# Public Homepage Route
+@app.get("/")
+async def public_homepage():
+    """Serve public homepage for tenant"""
+    # For now, redirect to a tenant's homepage
+    # In production, this would detect domain/subdomain and serve appropriate content
+    return {"message": "Welcome to Claude Platform", "redirect": "/login"}
+
+@app.get("/tenant/{subdomain}")
+async def tenant_homepage(subdomain: str):
+    """Serve tenant's public homepage"""
+    # Find tenant by subdomain
+    tenant = await db.tenants.find_one({"subdomain": subdomain}, {"_id": 0})
+    
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    
+    # Find homepage
+    homepage = await db.pages.find_one({
+        "tenant_id": tenant["id"],
+        "is_homepage": True,
+        "status": "published"
+    }, {"_id": 0})
+    
+    if not homepage:
+        return {"message": f"Welcome to {tenant.get('name', subdomain)}", "setup_required": True}
+    
+    # Get page builder data
+    cms_engine = CoworkingCMSEngine(db)
+    builder_data = await cms_engine.get_page_builder_data(tenant["id"], homepage["id"])
+    
+    return {
+        "tenant": tenant,
+        "homepage": homepage,
+        "blocks": builder_data.get("blocks", []) if builder_data else [],
+        "site_config": await cms_engine.get_site_config(tenant["id"])
+    }
+
 # Include the router in the main app
 app.include_router(api_router)
 
