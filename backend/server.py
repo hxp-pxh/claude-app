@@ -1258,24 +1258,54 @@ async def save_site_config(
     else:
         raise HTTPException(status_code=500, detail="Failed to save site configuration")
 
-# Default Homepage Creation
-@api_router.post("/cms/create-default-homepage")
-async def create_default_homepage(
-    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER]))
+# Custom Domain Management
+@api_router.get("/tenant/custom-domain")
+async def get_custom_domain(
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR]))
 ):
-    """Create a default homepage with premade template"""
-    cms_engine = CoworkingCMSEngine(db)
+    """Get custom domain configuration for tenant"""
+    tenant = await db.tenants.find_one(
+        {"id": current_user.tenant_id},
+        {"_id": 0}
+    )
     
-    try:
-        page_id = await cms_engine.create_default_homepage(current_user.tenant_id)
-        return {
-            "message": "Default homepage created successfully",
-            "page_id": page_id,
-            "homepage_url": f"/pages/{page_id}"
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    
+    return {
+        "custom_domain": tenant.get("custom_domain"),
+        "default_domain": f"{tenant.get('subdomain')}.myplatform.com",
+        "domain_verified": tenant.get("domain_verified", False)
+    }
+
+@api_router.post("/tenant/custom-domain")
+async def set_custom_domain(
+    domain_data: Dict[str, str],
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR]))
+):
+    """Set custom domain for tenant"""
+    custom_domain = domain_data.get("custom_domain", "").strip()
+    
+    # Basic domain validation
+    if custom_domain and not custom_domain.replace(".", "").replace("-", "").isalnum():
+        raise HTTPException(status_code=400, detail="Invalid domain format")
+    
+    await db.tenants.update_one(
+        {"id": current_user.tenant_id},
+        {
+            "$set": {
+                "custom_domain": custom_domain if custom_domain else None,
+                "domain_verified": False,  # Reset verification when domain changes
+                "updated_at": datetime.utcnow()
+            }
         }
-    except Exception as e:
-        print(f"Error creating default homepage: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to create default homepage")
+    )
+    
+    return {
+        "message": "Custom domain updated successfully",
+        "custom_domain": custom_domain,
+        "domain_verified": False
+    }
 
 # Include the router in the main app
 app.include_router(api_router)
