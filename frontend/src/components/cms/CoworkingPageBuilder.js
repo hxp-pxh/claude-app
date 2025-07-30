@@ -63,7 +63,8 @@ const CoworkingPageBuilder = ({ pageId, initialBlocks = [] }) => {
         loadAvailableBlocks(),
         loadAvailableThemes(),
         loadPageTemplates(),
-        loadExistingPageData()
+        loadExistingPageData(),
+        loadDomainConfig()
       ]);
     } catch (err) {
       console.error('Failed to load CMS data:', err);
