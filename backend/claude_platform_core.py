@@ -131,6 +131,10 @@ class ClaudePlatformCore:
         user = await identity_kernel.get_user_by_id(user_id)
         tenant = await identity_kernel.get_tenant_by_id(tenant_id)
         
+        # Convert ObjectIds to strings to avoid serialization issues
+        user = convert_objectid_to_str(user) if user else {}
+        tenant = convert_objectid_to_str(tenant) if tenant else {}
+        
         # Get metrics based on module configuration
         metrics = {}
         for metric_config in module.get_dashboard_metrics():
