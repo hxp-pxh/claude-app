@@ -1,34 +1,155 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Globe, FileText, UserPlus, Calendar, TrendingUp, BarChart3, Eye, Users } from 'lucide-react';
 import api from '../services/api';
+import { useTenant } from '../contexts/TenantContext';
+import { 
+  Users, 
+  Calendar, 
+  FileText, 
+  TrendingUp,
+  UserPlus,
+  DollarSign,
+  Clock,
+  Star,
+  CheckCircle,
+  BarChart3
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
+  const { 
+    translateTerm, 
+    translateObject, 
+    getDashboardConfig, 
+    getColorScheme,
+    getModuleInfo,
+    loading: moduleLoading 
+  } = useTenant();
+  
   const { data: dashboardData, isLoading } = useQuery({
     queryKey: ['dashboard-enhanced'],
     queryFn: () => api.get('/dashboard/enhanced').then(res => res.data)
   });
 
-  // Extract stats from the enhanced dashboard response
-  const stats = dashboardData ? {
+  const dashboardConfig = getDashboardConfig();
+  const colorScheme = getColorScheme();
+  const moduleInfo = getModuleInfo();
+
+  // Extract and translate stats from the enhanced dashboard response
+  const stats = dashboardData ? translateObject({
     total_leads: dashboardData.metrics?.total_leads || 0,
     new_leads_this_month: dashboardData.metrics?.new_leads_this_month || 0,
     total_pages: dashboardData.metrics?.total_pages || 0,
     total_forms: dashboardData.metrics?.total_forms || 0,
     upcoming_tours: dashboardData.metrics?.upcoming_tours || 0,
     conversion_rate: dashboardData.metrics?.conversion_rate || 0,
-    recent_leads: dashboardData.metrics?.recent_leads || []
-  } : null;
+    recent_leads: dashboardData.metrics?.recent_leads || [],
+    active_users: dashboardData.metrics?.active_users || 0,
+    active_members: dashboardData.metrics?.active_members || 0,
+    total_bookings: dashboardData.metrics?.total_bookings || 0,
+    space_utilization: dashboardData.metrics?.space_utilization || 0,
+    venue_revenue: dashboardData.metrics?.venue_revenue || 0,
+    citizen_reservations: dashboardData.metrics?.citizen_reservations || 0
+  }) : null;
 
-  if (isLoading) {
+  // Icon mapping for metrics
+  const metricIcons = {
+    users: Users,
+    members: Users,
+    citizens: Users,
+    guests: Users,
+    leads: UserPlus,
+    prospects: UserPlus,
+    inquiries: UserPlus,
+    bookings: Calendar,
+    reservations: Calendar,
+    pages: FileText,
+    forms: FileText,
+    tours: Clock,
+    revenue: DollarSign,
+    utilization: BarChart3,
+    satisfaction: Star,
+    conversion: TrendingUp
+  };
+
+  const getMetricIcon = (metricName) => {
+    const lowerName = metricName.toLowerCase();
+    for (const [key, icon] of Object.entries(metricIcons)) {
+      if (lowerName.includes(key)) return icon;
+    }
+    return TrendingUp;
+  };
+
+  if (isLoading || moduleLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: colorScheme.primary }}></div>
       </div>
     );
   }
+
+  // Dynamic dashboard widgets based on module configuration
+  const renderWidget = (widget) => {
+    switch (widget.type) {
+      case 'community_stats':
+      case 'facility_status':
+      case 'revenue_summary':
+        return (
+          <div key={widget.title} className="bg-white rounded-lg shadow p-6" style={{ gridColumn: `span ${widget.position?.span || 1}` }}>
+            <h3 className="text-lg font-semibold mb-4" style={{ color: colorScheme.text }}>{translateTerm(widget.title)}</h3>
+            <div className="grid grid-cols-1 gap-4">
+              {widget.metrics?.map((metric) => {
+                const value = stats?.[metric] || 0;
+                const IconComponent = getMetricIcon(metric);
+                return (
+                  <div key={metric} className="flex items-center">
+                    <IconComponent className="h-5 w-5 mr-3" style={{ color: colorScheme.primary }} />
+                    <div>
+                      <p className="text-sm text-gray-600">{translateTerm(metric.replace(/_/g, ' '))}</p>
+                      <p className="text-xl font-bold" style={{ color: colorScheme.text }}>
+                        {typeof value === 'number' && metric.includes('rate') ? `${value}%` : 
+                         typeof value === 'number' && metric.includes('revenue') ? `$${value.toLocaleString()}` : 
+                         value}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      
+      case 'booking_overview':
+      case 'reservation_overview':
+        return (
+          <div key={widget.title} className="bg-white rounded-lg shadow p-6" style={{ gridColumn: `span ${widget.position?.span || 1}` }}>
+            <h3 className="text-lg font-semibold mb-4" style={{ color: colorScheme.text }}>{translateTerm(widget.title)}</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">{translateTerm("Today's bookings")}</span>
+                <span className="font-bold" style={{ color: colorScheme.text }}>{stats?.total_bookings || 0}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">{translateTerm("Utilization Rate")}</span>
+                <span className="font-bold" style={{ color: colorScheme.text }}>{stats?.space_utilization || 0}%</span>
+              </div>
+            </div>
+          </div>
+        );
+      
+      default:
+        return null;
+    }
+  };
+
+  // Fallback dashboard if no module config is available
+  const fallbackStats = [
+    { name: translateTerm('Total Users'), value: stats?.active_users || stats?.active_members || stats?.citizen_reservations || 0, icon: Users, change: '+12%' },
+    { name: translateTerm('Active Bookings'), value: stats?.total_bookings || 0, icon: Calendar, change: '+5%' },
+    { name: translateTerm('Website Pages'), value: stats?.total_pages || 0, icon: FileText, change: '0%' },
+    { name: translateTerm('Conversion Rate'), value: `${stats?.conversion_rate || 0}%`, icon: TrendingUp, change: '+8%' },
+  ];
 
   const statCards = [
     {
