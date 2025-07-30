@@ -39,9 +39,88 @@ const SiteConfigurationWidget = ({ isOpen, onClose }) => {
     setLoading(true);
     try {
       const response = await api.get('/cms/site-config');
-      setConfig(response.data.config);
+      const loadedConfig = response.data.config || {};
+      
+      // Ensure all required structure exists
+      const safeConfig = {
+        navigation: {
+          show_navigation: true,
+          style: 'horizontal',
+          position: 'top',
+          menu_items: [],
+          ...loadedConfig.navigation
+        },
+        header: {
+          show_header: true,
+          show_login_button: true,
+          show_cta_button: true,
+          cta_text: 'Join Today',
+          cta_url: '/membership',
+          style: 'modern',
+          ...loadedConfig.header
+        },
+        footer: {
+          show_footer: true,
+          style: 'detailed',
+          sections: [],
+          bottom_text: '© 2025 Coworking Community. All rights reserved.',
+          show_social_links: true,
+          ...loadedConfig.footer
+        },
+        branding: {
+          logo_url: '/images/logos/coworking-logo.svg',
+          logo_alt: 'Coworking Community',
+          favicon_url: '/images/favicon.ico',
+          ...loadedConfig.branding
+        }
+      };
+      
+      setConfig(safeConfig);
     } catch (error) {
       console.error('Failed to load site config:', error);
+      // Set default config if loading fails
+      setConfig({
+        navigation: {
+          show_navigation: true,
+          style: 'horizontal',
+          position: 'top',
+          menu_items: [
+            {label: 'Home', url: '/', type: 'page'},
+            {label: 'Membership', url: '/membership', type: 'page'},
+            {label: 'Community', url: '/community', type: 'page'},
+            {label: 'Contact', url: '/contact', type: 'page'}
+          ]
+        },
+        header: {
+          show_header: true,
+          show_login_button: true,
+          show_cta_button: true,
+          cta_text: 'Join Today',
+          cta_url: '/membership',
+          style: 'modern'
+        },
+        footer: {
+          show_footer: true,
+          style: 'detailed',
+          sections: [
+            {
+              title: 'Quick Links',
+              links: [
+                {label: 'About', url: '/about'},
+                {label: 'Pricing', url: '/pricing'},
+                {label: 'Events', url: '/events'}
+              ]
+            }
+          ],
+          bottom_text: '© 2025 Coworking Community. All rights reserved.',
+          show_social_links: true
+        },
+        branding: {
+          logo_url: '/images/logos/coworking-logo.svg',
+          logo_alt: 'Coworking Community', 
+          favicon_url: '/images/favicon.ico'
+        }
+      });
     } finally {
       setLoading(false);
     }
