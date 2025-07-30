@@ -128,6 +128,32 @@ const SiteConfigurationWidget = ({ isOpen, onClose }) => {
     }
   };
 
+  const loadPageTemplates = async () => {
+    try {
+      const response = await api.get('/cms/coworking/page-templates');
+      const templates = response.data.templates || response.data;
+      setPageTemplates(Array.isArray(templates) ? templates : []);
+    } catch (error) {
+      console.error('Failed to load templates:', error);
+      throw error;
+    }
+  };
+
+  const loadDomainConfig = async () => {
+    try {
+      const response = await api.get('/tenant/custom-domain');
+      setDomainConfig(response.data);
+    } catch (error) {
+      console.error('Failed to load domain config:', error);
+      // Set default domain config
+      setDomainConfig({
+        custom_domain: null,
+        default_domain: 'tenant.myplatform.com',
+        domain_verified: false
+      });
+    }
+  };
+
   const saveSiteConfig = async () => {
     setSaving(true);
     try {
