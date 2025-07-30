@@ -348,8 +348,17 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     return User(**user_data)
 
 def require_role(required_roles: List[UserRole]):
-    def role_checker(current_user: User = Depends(get_current_user)):
-        if current_user.role not in required_roles:
+    async def role_checker(current_user: User = Depends(get_current_user)):
+        core = await get_platform_core(db)
+        
+        # Check permission using identity kernel
+        has_permission = await core.check_user_permission(
+            current_user.tenant_id, 
+            current_user.id, 
+            f"role.{current_user.role}"
+        )
+        
+        if not has_permission or current_user.role not in required_roles:
             raise HTTPException(status_code=403, detail="Insufficient permissions")
         return current_user
     return role_checker
