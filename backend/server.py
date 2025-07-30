@@ -136,6 +136,19 @@ class User(BaseModel):
     last_login: Optional[datetime] = None
 
 # CMS Models
+class LayoutSettings(BaseModel):
+    show_header: bool = True
+    show_navigation: bool = True
+    show_footer: bool = True
+    container_width: str = "container"  # container, full, narrow
+    sidebar: Optional[str] = None  # left, right, None
+
+class SEOSettings(BaseModel):
+    index: bool = True
+    follow: bool = True
+    sitemap: bool = True
+    canonical_url: Optional[str] = None
+
 class Page(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     tenant_id: str
@@ -147,6 +160,8 @@ class Page(BaseModel):
     status: PageStatus = PageStatus.DRAFT
     template_id: Optional[str] = None
     is_homepage: bool = False
+    layout_settings: LayoutSettings = Field(default_factory=LayoutSettings)
+    seo_settings: SEOSettings = Field(default_factory=SEOSettings)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
