@@ -18,7 +18,7 @@ class ClaudePlatformTester:
             "downtown-hub": {
                 "module": "coworking",
                 "admin_email": "admin@downtownhub.com",
-                "admin_password": "password123"
+                "admin_password": "admin123"
             },
             "city-hall": {
                 "module": "government", 
