@@ -432,9 +432,21 @@ async def get_dashboard_stats(
     })
     
     # Get recent bookings
-    recent_bookings = await db.bookings.find({
+    recent_bookings_raw = await db.bookings.find({
         "tenant_id": current_user.tenant_id
     }).sort("created_at", -1).limit(5).to_list(5)
+    
+    # Convert to serializable format
+    recent_bookings = []
+    for booking in recent_bookings_raw:
+        recent_bookings.append({
+            "id": booking["id"],
+            "resource_id": booking["resource_id"],
+            "user_id": booking["user_id"],
+            "created_at": booking["created_at"].isoformat(),
+            "start_time": booking["start_time"].isoformat(),
+            "status": booking["status"]
+        })
     
     return {
         "total_members": total_members,
