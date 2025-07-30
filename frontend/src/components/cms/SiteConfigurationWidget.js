@@ -170,7 +170,7 @@ const SiteConfigurationWidget = ({ isOpen, onClose }) => {
       ...prev,
       navigation: {
         ...prev.navigation,
-        menu_items: prev.navigation.menu_items.filter((_, i) => i !== index)
+        menu_items: (prev.navigation?.menu_items || []).filter((_, i) => i !== index)
       }
     }));
   };
