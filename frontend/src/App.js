@@ -6,13 +6,14 @@ import { TenantProvider } from './contexts/TenantContext';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard';
-import Members from './pages/Members';
-import Resources from './pages/Resources';
-import Bookings from './pages/Bookings';
-import Profile from './pages/Profile';
-import CheckIn from './pages/CheckIn';
-import Events from './pages/Events';
-import Community from './pages/Community';
+import CMSPages from './pages/cms/Pages';
+import PageEditor from './pages/cms/PageEditor';
+import Forms from './pages/Forms';
+import FormBuilder from './pages/FormBuilder';
+import Leads from './pages/Leads';
+import LeadDetail from './pages/LeadDetail';
+import Tours from './pages/Tours';
+import Settings from './pages/Settings';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
@@ -44,13 +45,16 @@ function App() {
                       <Layout>
                         <Routes>
                           <Route path="/dashboard" element={<Dashboard />} />
-                          <Route path="/members" element={<Members />} />
-                          <Route path="/resources" element={<Resources />} />
-                          <Route path="/bookings" element={<Bookings />} />
-                          <Route path="/profile" element={<Profile />} />
-                          <Route path="/checkin" element={<CheckIn />} />
-                          <Route path="/events" element={<Events />} />
-                          <Route path="/community" element={<Community />} />
+                          <Route path="/cms/pages" element={<CMSPages />} />
+                          <Route path="/cms/pages/new" element={<PageEditor />} />
+                          <Route path="/cms/pages/:pageId/edit" element={<PageEditor />} />
+                          <Route path="/forms" element={<Forms />} />
+                          <Route path="/forms/new" element={<FormBuilder />} />
+                          <Route path="/forms/:formId/edit" element={<FormBuilder />} />
+                          <Route path="/leads" element={<Leads />} />
+                          <Route path="/leads/:leadId" element={<LeadDetail />} />
+                          <Route path="/tours" element={<Tours />} />
+                          <Route path="/settings" element={<Settings />} />
                         </Routes>
                       </Layout>
                     </ProtectedRoute>

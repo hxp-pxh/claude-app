@@ -3,16 +3,16 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   Home, 
-  Users, 
-  Building, 
-  Calendar, 
-  User,
-  LogIn,
-  Calendar as CalendarIcon,
-  UserCheck,
+  Globe,
+  FileText,
+  Users,
+  Calendar,
+  Settings as SettingsIcon,
   LogOut,
   Menu,
-  X 
+  X,
+  UserPlus,
+  BarChart3
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
@@ -22,18 +22,26 @@ const Layout = ({ children }) => {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
-    ...(user?.role !== 'member' ? [
-      { name: 'Members', href: '/members', icon: Users },
-    ] : []),
-    { name: 'Resources', href: '/resources', icon: Building },
-    { name: 'Bookings', href: '/bookings', icon: Calendar },
-    { name: 'Check-In', href: '/checkin', icon: LogIn },
-    { name: 'Events', href: '/events', icon: CalendarIcon },
-    { name: 'Community', href: '/community', icon: UserCheck },
-    { name: 'Profile', href: '/profile', icon: User },
+    { name: 'Website', href: '/cms/pages', icon: Globe },
+    { name: 'Forms', href: '/forms', icon: FileText },
+    { name: 'Leads', href: '/leads', icon: UserPlus },
+    { name: 'Tours', href: '/tours', icon: Calendar },
+    { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+    { name: 'Settings', href: '/settings', icon: SettingsIcon },
   ];
 
-  const isActive = (path) => location.pathname === path;
+  // Filter navigation based on user role
+  const canAccess = (item) => {
+    if (user?.role === 'member') {
+      // Members only see limited options
+      return ['Dashboard'].includes(item.name);
+    }
+    return true; // Admin roles see everything
+  };
+
+  const filteredNavigation = navigation.filter(canAccess);
+
+  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -52,7 +60,7 @@ const Layout = ({ children }) => {
         lg:translate-x-0 lg:static lg:inset-0
       `}>
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
-          <h1 className="text-xl font-bold text-gray-900">SpaceHub</h1>
+          <h1 className="text-xl font-bold text-gray-900">Claude Platform</h1>
           <button
             className="lg:hidden"
             onClick={() => setSidebarOpen(false)}
@@ -63,7 +71,7 @@ const Layout = ({ children }) => {
 
         <nav className="mt-8 px-4">
           <ul className="space-y-2">
-            {navigation.map((item) => {
+            {filteredNavigation.map((item) => {
               const Icon = item.icon;
               return (
                 <li key={item.name}>
@@ -101,7 +109,6 @@ const Layout = ({ children }) => {
                   {user?.first_name} {user?.last_name}
                 </p>
                 <p className="text-xs text-gray-500 capitalize">
-                  {user?.membership_tier && `${user.membership_tier} • `}
                   {user?.role?.replace('_', ' ')}
                 </p>
               </div>
