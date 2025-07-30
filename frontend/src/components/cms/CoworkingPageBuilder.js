@@ -128,6 +128,17 @@ const CoworkingPageBuilder = ({ pageId, initialBlocks = [] }) => {
     }
   };
 
+  const loadDomainConfig = async () => {
+    try {
+      const response = await api.get('/cms/domain-config');
+      const domainConfig = response.data.config || response.data;
+      setDomainConfig(domainConfig);
+    } catch (error) {
+      console.error('Failed to load domain config:', error);
+      throw error;
+    }
+  };
+
   // Drag and drop handlers
   const handleDragEnd = (result) => {
     if (!result.destination) return;
