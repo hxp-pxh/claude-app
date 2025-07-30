@@ -1040,6 +1040,37 @@ async def get_public_form(tenant_subdomain: str, form_id: str):
     
     return Form(**form)
 
+# Add new core platform endpoints BEFORE including router
+@api_router.get("/platform/experience")
+async def get_tenant_experience(current_user: User = Depends(get_current_user)):
+    """Get complete tenant experience configuration"""
+    core = await get_platform_core(db)
+    experience = await core.get_tenant_experience(current_user.tenant_id)
+    return experience
+
+@api_router.get("/platform/health")
+async def get_platform_health():
+    """Get platform health status"""
+    core = await get_platform_core(db)
+    health = await core.get_platform_health()
+    return health
+
+@api_router.get("/dashboard/enhanced", response_model=Dict[str, Any])
+async def get_enhanced_dashboard(current_user: User = Depends(get_current_user)):
+    """Get enhanced dashboard with module-specific data"""
+    core = await get_platform_core(db)
+    dashboard_data = await core.get_dashboard_data(current_user.tenant_id, current_user.id)
+    return dashboard_data
+
+@api_router.post("/platform/reload-module")
+async def reload_tenant_module(
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR]))
+):
+    """Reload module configuration for tenant"""
+    core = await get_platform_core(db)
+    await core.reload_tenant_module(current_user.tenant_id)
+    return {"message": "Module reloaded successfully"}
+
 # Include the router in the main app
 app.include_router(api_router)
 
