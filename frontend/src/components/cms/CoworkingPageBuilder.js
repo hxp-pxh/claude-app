@@ -307,40 +307,37 @@ const CoworkingPageBuilder = ({ pageId, initialBlocks = [] }) => {
                 Content Blocks
               </h3>
               
-              <DragDropContext onDragEnd={handleDragEnd}>
-                <Droppable droppableId="available-blocks" isDropDisabled>
-                  {(provided) => (
-                    <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3">
-                      {availableBlocks.map((block, index) => {
-                        const IconComponent = blockIcons[block.id] || Layout;
-                        return (
-                          <Draggable key={block.id} draggableId={block.id} index={index}>
-                            {(provided, snapshot) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                className={`p-4 border border-gray-200 rounded-lg cursor-move hover:shadow-md transition-shadow ${
-                                  snapshot.isDragging ? 'shadow-lg' : ''
-                                }`}
-                              >
-                                <div className="flex items-center space-x-3">
-                                  <IconComponent className="h-5 w-5" style={{ color: colorScheme.primary }} />
-                                  <div>
-                                    <h4 className="font-medium text-gray-900">{block.name}</h4>
-                                    <p className="text-sm text-gray-600">{block.description}</p>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </Draggable>
-                        );
-                      })}
-                      {provided.placeholder}
+              {/* Temporarily disable drag-and-drop to fix React context issue */}
+              <div className="space-y-3">
+                {availableBlocks.map((block, index) => {
+                  const IconComponent = blockIcons[block.id] || Layout;
+                  return (
+                    <div
+                      key={block.id}
+                      onClick={() => {
+                        // Add block to canvas when clicked
+                        const newBlock = {
+                          id: `block_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                          type: block.id,
+                          config: getDefaultBlockConfig(block),
+                          order: blocks.length
+                        };
+                        setBlocks([...blocks, newBlock]);
+                      }}
+                      className="p-4 border border-gray-200 rounded-lg cursor-pointer hover:shadow-md transition-shadow hover:bg-gray-50"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <IconComponent className="h-5 w-5" style={{ color: colorScheme.primary }} />
+                        <div>
+                          <h4 className="font-medium text-gray-900">{block.name}</h4>
+                          <p className="text-sm text-gray-600">{block.description}</p>
+                          <p className="text-xs text-blue-600 mt-1">Click to add to page</p>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                </Droppable>
-              </DragDropContext>
+                  );
+                })}
+              </div>
 
               {/* Theme Selector */}
               {availableThemes.length > 0 && (
