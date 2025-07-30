@@ -300,12 +300,8 @@
 
 ## test_plan:
   current_focus:
-    - "Module-aware UI Framework"
-    - "Tenant Context with Module Loading"
-    - "Industry-Specific UI Transformation"
-  stuck_tasks:
-    - "Module-aware UI Framework"
-    - "Tenant Context with Module Loading"
+    - "Dashboard Terminology Translation Fix"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
