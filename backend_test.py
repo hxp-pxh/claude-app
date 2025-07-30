@@ -488,7 +488,8 @@ class ClaudePlatformTester:
         # Test module-specific content blocks are available
         success2 = True
         if success1 and response1:
-            block_ids = [block.get('id') for block in response1]
+            blocks = response1.get('blocks', []) if isinstance(response1, dict) else []
+            block_ids = [block.get('id') for block in blocks]
             required_coworking_blocks = ['coworking_hero', 'membership_pricing', 'member_testimonials', 'community_events']
             missing_blocks = [block for block in required_coworking_blocks if block not in block_ids]
             if missing_blocks:
