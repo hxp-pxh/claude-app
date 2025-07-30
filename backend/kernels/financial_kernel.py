@@ -5,7 +5,7 @@ Universal financial management and billing engine
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
 from decimal import Decimal
-from base_kernel import BaseKernel
+from kernels.base_kernel import BaseKernel
 
 
 class FinancialKernel(BaseKernel):
