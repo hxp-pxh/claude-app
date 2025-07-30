@@ -103,6 +103,7 @@ export const AuthProvider = ({ children }) => {
     user,
     token,
     loading,
+    isAuthenticated: !!user && !!token, // Add isAuthenticated computed property
     login,
     register,
     logout,
