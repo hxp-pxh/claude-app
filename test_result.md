@@ -288,10 +288,12 @@
 
 ## test_plan:
   current_focus:
-    - "Server Integration with Core-Module Architecture"
-    - "Frontend Module Integration"
-    - "End-to-End Module Experience Testing"
-  stuck_tasks: []
+    - "Module-aware UI Framework"
+    - "Tenant Context with Module Loading"
+    - "Industry-Specific UI Transformation"
+  stuck_tasks:
+    - "Module-aware UI Framework"
+    - "Tenant Context with Module Loading"
   test_all: false
   test_priority: "high_first"
 
