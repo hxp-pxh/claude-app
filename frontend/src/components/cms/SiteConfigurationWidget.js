@@ -242,7 +242,8 @@ const SiteConfigurationWidget = ({ isOpen, onClose }) => {
     { id: 'navigation', label: 'Navigation', icon: Navigation },
     { id: 'header', label: 'Header', icon: Layout },
     { id: 'footer', label: 'Footer', icon: Layout },
-    { id: 'branding', label: 'Branding', icon: Palette }
+    { id: 'branding', label: 'Branding', icon: Palette },
+    { id: 'domain', label: 'Domain', icon: Link }
   ];
 
   if (!isOpen) return null;
