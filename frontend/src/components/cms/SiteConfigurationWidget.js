@@ -591,6 +591,18 @@ const SiteConfigurationWidget = ({ isOpen, onClose }) => {
                                     }}
                                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
                                   />
+                                  <select
+                                    value={link.external ? 'external' : 'internal'}
+                                    onChange={(e) => {
+                                      const newSections = [...config.footer.sections];
+                                      newSections[sectionIndex].links[linkIndex] = { ...link, external: e.target.value === 'external' };
+                                      updateConfig('footer', 'sections', newSections);
+                                    }}
+                                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                  >
+                                    <option value="internal">Internal</option>
+                                    <option value="external">External</option>
+                                  </select>
                                   <button
                                     onClick={() => removeFooterLink(sectionIndex, linkIndex)}
                                     className="text-red-500 hover:text-red-700"
