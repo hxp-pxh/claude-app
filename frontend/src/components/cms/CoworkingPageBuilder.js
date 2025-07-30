@@ -381,94 +381,75 @@ const CoworkingPageBuilder = ({ pageId, initialBlocks = [] }) => {
               )}
             </div>
 
-            {/* Main Canvas */}
+            {/* Main Canvas - Simplified without drag-and-drop */}
             <div className="flex-1 p-6">
-              <Droppable droppableId="page-blocks">
-                {(provided) => (
-                  <div
-                    {...provided.droppableProps}
-                    ref={provided.innerRef}
-                    className="min-h-96 space-y-4"
-                  >
-                    {blocks.length === 0 && (
-                      <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
-                        <Layout className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">
-                          Start Building Your Page
-                        </h3>
-                        <p className="text-gray-600 mb-4">
-                          Drag content blocks from the sidebar to create your coworking space website
-                        </p>
-                        {pageTemplates.length > 0 && (
-                          <p className="text-sm text-gray-500">
-                            Or choose a template to get started quickly
-                          </p>
-                        )}
-                      </div>
+              <div className="min-h-96 space-y-4">
+                {blocks.length === 0 && (
+                  <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
+                    <Layout className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      Start Building Your Page
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      Click content blocks from the sidebar to add them to your coworking space website
+                    </p>
+                    {pageTemplates.length > 0 && (
+                      <p className="text-sm text-gray-500">
+                        Or choose a template to get started quickly
+                      </p>
                     )}
-
-                    {blocks.map((block, index) => {
-                      const blockDef = availableBlocks.find(b => b.id === block.type);
-                      const IconComponent = blockIcons[block.type] || Layout;
-                      
-                      return (
-                        <Draggable key={block.id} draggableId={block.id} index={index}>
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              className={`bg-white border border-gray-200 rounded-lg p-6 group relative ${
-                                snapshot.isDragging ? 'shadow-lg' : 'hover:shadow-md'
-                              } transition-shadow`}
-                            >
-                              {/* Block Header */}
-                              <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center space-x-3">
-                                  <div
-                                    {...provided.dragHandleProps}
-                                    className="cursor-move p-1 rounded hover:bg-gray-100"
-                                  >
-                                    <Move className="h-4 w-4 text-gray-400" />
-                                  </div>
-                                  <IconComponent className="h-5 w-5" style={{ color: colorScheme.primary }} />
-                                  <div>
-                                    <h4 className="font-medium text-gray-900">{blockDef?.name || block.type}</h4>
-                                    <p className="text-sm text-gray-600">{blockDef?.description}</p>
-                                  </div>
-                                </div>
-                                <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <button
-                                    onClick={() => editBlock(block)}
-                                    className="p-2 text-gray-400 hover:text-gray-600 rounded"
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </button>
-                                  <button
-                                    onClick={() => removeBlock(block.id)}
-                                    className="p-2 text-gray-400 hover:text-red-600 rounded"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </button>
-                                </div>
-                              </div>
-
-                              {/* Block Preview */}
-                              <div className="border border-gray-100 rounded-lg p-4 bg-gray-50">
-                                <BlockPreview
-                                  blockType={block.type}
-                                  config={block.config}
-                                  theme={selectedTheme}
-                                />
-                              </div>
-                            </div>
-                          )}
-                        </Draggable>
-                      );
-                    })}
-                    {provided.placeholder}
                   </div>
                 )}
-              </Droppable>
+
+                {blocks.map((block, index) => {
+                  const blockDef = availableBlocks.find(b => b.id === block.type);
+                  const IconComponent = blockIcons[block.type] || Layout;
+                  
+                  return (
+                    <div
+                      key={block.id}
+                      className="bg-white border border-gray-200 rounded-lg p-6 group relative hover:shadow-md transition-shadow"
+                    >
+                      {/* Block Header */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="p-1 rounded hover:bg-gray-100">
+                            <Move className="h-4 w-4 text-gray-400" />
+                          </div>
+                          <IconComponent className="h-5 w-5" style={{ color: colorScheme.primary }} />
+                          <div>
+                            <h4 className="font-medium text-gray-900">{blockDef?.name || block.type}</h4>
+                            <p className="text-sm text-gray-600">{blockDef?.description}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => editBlock(block)}
+                            className="p-2 text-gray-400 hover:text-gray-600 rounded"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => removeBlock(block.id)}
+                            className="p-2 text-gray-400 hover:text-red-600 rounded"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Block Preview */}
+                      <div className="border border-gray-100 rounded-lg p-4 bg-gray-50">
+                        <BlockPreview
+                          blockType={block.type}
+                          config={block.config}
+                          theme={selectedTheme}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </>
         )}
