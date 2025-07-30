@@ -358,9 +358,10 @@ class ClaudePlatformTester:
             token=token
         )
         if success3:
-            print(f"   Available templates: {len(response3)} page templates")
-            if response3:
-                template_names = [template.get('name') for template in response3]
+            templates = response3.get('templates', []) if isinstance(response3, dict) else []
+            print(f"   Available templates: {len(templates)} page templates")
+            if templates:
+                template_names = [template.get('name') for template in templates]
                 expected_templates = ['Coworking Homepage', 'Membership Plans', 'Our Community', 'Our Spaces']
                 found_templates = [t for t in expected_templates if t in template_names]
                 print(f"   Expected templates found: {len(found_templates)}/{len(expected_templates)}")
