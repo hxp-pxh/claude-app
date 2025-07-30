@@ -500,6 +500,304 @@ class ClaudePlatformTester:
         
         return success1 and success2
 
+    def test_site_configuration(self, subdomain):
+        """Test Site Configuration endpoints"""
+        token = self.tenant_tokens.get(subdomain)
+        if not token:
+            print(f"❌ No token for {subdomain}")
+            return False
+        
+        print(f"\n⚙️ SITE CONFIGURATION TESTS for {subdomain}")
+        
+        # Test GET site configuration
+        success1, response1 = self.run_test(
+            f"Get Site Configuration for {subdomain}",
+            "GET",
+            "cms/site-config",
+            200,
+            token=token
+        )
+        if success1:
+            config = response1.get('config', {})
+            print(f"   Site config loaded: {len(config)} configuration sections")
+            
+            # Check for expected configuration sections
+            expected_sections = ['navigation', 'header', 'footer', 'branding']
+            found_sections = [section for section in expected_sections if section in config]
+            print(f"   Configuration sections found: {len(found_sections)}/{len(expected_sections)}")
+            
+            # Check navigation structure
+            navigation = config.get('navigation', {})
+            if navigation:
+                nav_items = navigation.get('items', [])
+                print(f"   Navigation items: {len(nav_items)}")
+            
+            # Check header configuration
+            header = config.get('header', {})
+            if header:
+                has_logo = 'logo' in header
+                has_cta = 'cta_button' in header
+                print(f"   Header has logo: {has_logo}, has CTA: {has_cta}")
+            
+            # Check footer configuration
+            footer = config.get('footer', {})
+            if footer:
+                footer_sections = footer.get('sections', [])
+                print(f"   Footer sections: {len(footer_sections)}")
+        
+        # Test POST site configuration
+        test_config = {
+            "navigation": {
+                "items": [
+                    {"label": "Home", "url": "/", "order": 1},
+                    {"label": "Membership", "url": "/membership", "order": 2},
+                    {"label": "Community", "url": "/community", "order": 3},
+                    {"label": "Contact", "url": "/contact", "order": 4}
+                ]
+            },
+            "header": {
+                "logo": {"url": "/logo.png", "alt": "Coworking Space"},
+                "cta_button": {"text": "Join Now", "url": "/join", "style": "primary"},
+                "login_button": {"text": "Member Login", "url": "/login"}
+            },
+            "footer": {
+                "sections": [
+                    {
+                        "title": "Quick Links",
+                        "links": [
+                            {"label": "About", "url": "/about"},
+                            {"label": "Pricing", "url": "/pricing"},
+                            {"label": "Events", "url": "/events"}
+                        ]
+                    },
+                    {
+                        "title": "Contact Info",
+                        "content": {
+                            "address": "123 Innovation St, Tech City",
+                            "phone": "(555) 123-4567",
+                            "email": "hello@coworkingspace.com"
+                        }
+                    }
+                ]
+            },
+            "branding": {
+                "primary_color": "#3B82F6",
+                "secondary_color": "#10B981",
+                "font_family": "Inter, sans-serif"
+            }
+        }
+        
+        success2, response2 = self.run_test(
+            f"Save Site Configuration for {subdomain}",
+            "POST",
+            "cms/site-config",
+            200,
+            data=test_config,
+            token=token
+        )
+        if success2:
+            print(f"   Site configuration saved successfully")
+        
+        return success1 and success2
+
+    def test_default_homepage_creation(self, subdomain):
+        """Test Default Homepage Creation endpoint"""
+        token = self.tenant_tokens.get(subdomain)
+        if not token:
+            print(f"❌ No token for {subdomain}")
+            return False
+        
+        print(f"\n🏠 DEFAULT HOMEPAGE CREATION TESTS for {subdomain}")
+        
+        # Test creating default homepage
+        success1, response1 = self.run_test(
+            f"Create Default Homepage for {subdomain}",
+            "POST",
+            "cms/create-default-homepage",
+            200,
+            token=token
+        )
+        if success1:
+            page_id = response1.get('page_id')
+            homepage_url = response1.get('homepage_url')
+            print(f"   Homepage created with ID: {page_id}")
+            print(f"   Homepage URL: {homepage_url}")
+            
+            # Verify the created homepage exists and has proper structure
+            if page_id:
+                success2, page_response = self.run_test(
+                    f"Verify Created Homepage for {subdomain}",
+                    "GET",
+                    f"cms/pages/{page_id}",
+                    200,
+                    token=token
+                )
+                if success2:
+                    page = page_response
+                    print(f"   Homepage title: {page.get('title')}")
+                    print(f"   Homepage slug: {page.get('slug')}")
+                    print(f"   Is homepage: {page.get('is_homepage')}")
+                    print(f"   Status: {page.get('status')}")
+                    
+                    # Check layout settings
+                    layout_settings = page.get('layout_settings', {})
+                    if layout_settings:
+                        show_header = layout_settings.get('show_header', False)
+                        show_navigation = layout_settings.get('show_navigation', False)
+                        show_footer = layout_settings.get('show_footer', False)
+                        print(f"   Layout - Header: {show_header}, Navigation: {show_navigation}, Footer: {show_footer}")
+                    
+                    # Check content blocks
+                    content_blocks = page.get('content_blocks', [])
+                    print(f"   Content blocks: {len(content_blocks)}")
+                    
+                    # Verify expected content blocks for coworking homepage
+                    expected_block_types = ['hero', 'stats', 'pricing', 'gallery', 'testimonials', 'cta']
+                    found_block_types = []
+                    for block in content_blocks:
+                        block_type = block.get('type', '')
+                        if any(expected in block_type.lower() for expected in expected_block_types):
+                            found_block_types.append(block_type)
+                    
+                    print(f"   Expected content blocks found: {len(found_block_types)}")
+                    if found_block_types:
+                        print(f"   Block types: {', '.join(found_block_types[:3])}...")
+                    
+                    # Check page builder data
+                    success3, builder_response = self.run_test(
+                        f"Check Homepage Builder Data for {subdomain}",
+                        "GET",
+                        f"cms/pages/{page_id}/builder",
+                        200,
+                        token=token
+                    )
+                    if success3:
+                        builder_blocks = builder_response.get('blocks', [])
+                        print(f"   Page builder blocks: {len(builder_blocks)}")
+                        
+                        # Verify we have the expected 6 content blocks
+                        if len(builder_blocks) >= 6:
+                            print(f"   ✅ Homepage has expected number of content blocks (6+)")
+                        else:
+                            print(f"   ⚠️ Homepage has fewer blocks than expected: {len(builder_blocks)}/6")
+                    
+                    return success1 and success2 and success3
+                else:
+                    return success1
+            else:
+                return success1
+        else:
+            return False
+
+    def test_enhanced_page_model_support(self, subdomain):
+        """Test Enhanced Page Model with layout_settings and seo_settings"""
+        token = self.tenant_tokens.get(subdomain)
+        if not token:
+            print(f"❌ No token for {subdomain}")
+            return False
+        
+        print(f"\n📄 ENHANCED PAGE MODEL TESTS for {subdomain}")
+        
+        # Test creating a page with enhanced layout and SEO settings
+        enhanced_page_data = {
+            "title": "Test Enhanced Page",
+            "slug": "test-enhanced-page",
+            "content_blocks": [
+                {
+                    "type": "hero_banner",
+                    "config": {
+                        "title": "Enhanced Page Test",
+                        "subtitle": "Testing new page model features"
+                    }
+                }
+            ],
+            "meta_title": "Enhanced Page - SEO Title",
+            "meta_description": "This is a test page for enhanced page model with SEO settings",
+            "layout_settings": {
+                "show_header": True,
+                "show_navigation": False,
+                "show_footer": True,
+                "container_width": "narrow",
+                "sidebar": "right"
+            },
+            "seo_settings": {
+                "index": True,
+                "follow": True,
+                "sitemap": True,
+                "canonical_url": "https://example.com/test-enhanced-page"
+            }
+        }
+        
+        success1, response1 = self.run_test(
+            f"Create Enhanced Page for {subdomain}",
+            "POST",
+            "cms/pages",
+            200,
+            data=enhanced_page_data,
+            token=token
+        )
+        if success1:
+            page_id = response1.get('id')
+            print(f"   Enhanced page created with ID: {page_id}")
+            
+            # Verify the page has the enhanced settings
+            success2, page_response = self.run_test(
+                f"Verify Enhanced Page Settings for {subdomain}",
+                "GET",
+                f"cms/pages/{page_id}",
+                200,
+                token=token
+            )
+            if success2:
+                page = page_response
+                
+                # Check layout settings
+                layout_settings = page.get('layout_settings', {})
+                if layout_settings:
+                    print(f"   Layout Settings:")
+                    print(f"     Show Header: {layout_settings.get('show_header')}")
+                    print(f"     Show Navigation: {layout_settings.get('show_navigation')}")
+                    print(f"     Show Footer: {layout_settings.get('show_footer')}")
+                    print(f"     Container Width: {layout_settings.get('container_width')}")
+                    print(f"     Sidebar: {layout_settings.get('sidebar')}")
+                
+                # Check SEO settings
+                seo_settings = page.get('seo_settings', {})
+                if seo_settings:
+                    print(f"   SEO Settings:")
+                    print(f"     Index: {seo_settings.get('index')}")
+                    print(f"     Follow: {seo_settings.get('follow')}")
+                    print(f"     Sitemap: {seo_settings.get('sitemap')}")
+                    print(f"     Canonical URL: {seo_settings.get('canonical_url')}")
+                
+                # Test updating page with different layout configuration
+                update_data = {
+                    "layout_settings": {
+                        "show_header": False,
+                        "show_navigation": True,
+                        "show_footer": False,
+                        "container_width": "full"
+                    }
+                }
+                
+                success3, update_response = self.run_test(
+                    f"Update Page Layout Settings for {subdomain}",
+                    "PUT",
+                    f"cms/pages/{page_id}",
+                    200,
+                    data=update_data,
+                    token=token
+                )
+                if success3:
+                    updated_layout = update_response.get('layout_settings', {})
+                    print(f"   Updated layout - Header: {updated_layout.get('show_header')}, Navigation: {updated_layout.get('show_navigation')}")
+                
+                return success1 and success2 and success3
+            else:
+                return success1
+        else:
+            return False
+
 def main():
     print("🚀 Starting Enhanced Coworking CMS System Tests")
     print("=" * 70)
