@@ -156,6 +156,69 @@ async def seed_claude_platform():
                 "guest_management": True,
                 "booking_system": True
             }
+        },
+        {
+            "name": "State University Campus",
+            "subdomain": "state-university",
+            "industry_module": "university",
+            "admin_email": "facilities@stateuniversity.edu",
+            "admin_password": "password123",
+            "branding": {
+                "primary_color": "#7C3AED",
+                "secondary_color": "#6D28D9",
+                "logo_url": "/images/logos/state-university.svg",
+                "tagline": "Academic excellence in every space"
+            },
+            "feature_toggles": {
+                "website_builder": True,
+                "lead_management": True,
+                "academic_calendar": True,
+                "sso_integration": True,
+                "research_facilities": True,
+                "booking_system": True
+            }
+        },
+        {
+            "name": "Artisan Creative Studios",
+            "subdomain": "artisan-studios",
+            "industry_module": "creative_studio",
+            "admin_email": "studio@artisancreative.com",
+            "admin_password": "password123",
+            "branding": {
+                "primary_color": "#EA580C",
+                "secondary_color": "#DC2626",
+                "logo_url": "/images/logos/artisan-studios.svg",
+                "tagline": "Where creativity comes to life"
+            },
+            "feature_toggles": {
+                "website_builder": True,
+                "lead_management": True,
+                "portfolio_showcase": True,
+                "equipment_rental": True,
+                "creative_workshops": True,
+                "booking_system": True
+            }
+        },
+        {
+            "name": "Metropolitan Lofts",
+            "subdomain": "metro-lofts",
+            "industry_module": "residential",
+            "admin_email": "management@metrolofts.com",
+            "admin_password": "password123",
+            "branding": {
+                "primary_color": "#0891B2",
+                "secondary_color": "#0E7490",
+                "logo_url": "/images/logos/metro-lofts.svg",
+                "tagline": "Modern living, community focused"
+            },
+            "feature_toggles": {
+                "website_builder": True,
+                "lead_management": True,
+                "resident_portal": True,
+                "maintenance_requests": True,
+                "community_events": True,
+                "booking_system": True
+            }
         }
     ]
     
