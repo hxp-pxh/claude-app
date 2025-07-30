@@ -2,10 +2,10 @@
 Module Registry - Runtime module loading and management
 """
 from typing import Dict, Any, Optional
-from .base_module import BaseModule
-from .coworking_module import CoworkingModule
-from .government_module import GovernmentModule
-from .hotel_module import HotelModule
+from base_module import BaseModule
+from coworking_module import CoworkingModule
+from government_module import GovernmentModule
+from hotel_module import HotelModule
 
 
 class ModuleRegistry:
