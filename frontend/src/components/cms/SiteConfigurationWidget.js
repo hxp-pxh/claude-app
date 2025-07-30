@@ -368,7 +368,7 @@ const SiteConfigurationWidget = ({ isOpen, onClose }) => {
                       </div>
 
                       <div className="space-y-3">
-                        {config.navigation.menu_items.map((item, index) => (
+                        {(config.navigation.menu_items || []).map((item, index) => (
                           <div key={index} className="p-4 border border-gray-200 rounded-lg">
                             <div className="flex items-center justify-between mb-3">
                               <div className="flex items-center space-x-2">
