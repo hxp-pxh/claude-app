@@ -358,7 +358,10 @@ def require_role(required_roles: List[UserRole]):
             f"role.{current_user.role}"
         )
         
-        if not has_permission or current_user.role not in required_roles:
+        # Convert UserRole enums to strings for comparison
+        required_role_strings = [role.value for role in required_roles]
+        
+        if not has_permission or current_user.role not in required_role_strings:
             raise HTTPException(status_code=403, detail="Insufficient permissions")
         return current_user
     return role_checker
