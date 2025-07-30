@@ -364,12 +364,6 @@ def require_role(required_roles: List[UserRole]):
         # Convert UserRole enums to strings for comparison
         required_role_strings = [role.value for role in required_roles]
         
-        # Debug logging
-        print(f"DEBUG: User role: {user_role_str}")
-        print(f"DEBUG: Required roles: {required_role_strings}")
-        print(f"DEBUG: Has permission: {has_permission}")
-        print(f"DEBUG: Role in required: {user_role_str in required_role_strings}")
-        
         if not has_permission or user_role_str not in required_role_strings:
             raise HTTPException(status_code=403, detail="Insufficient permissions")
         return current_user
