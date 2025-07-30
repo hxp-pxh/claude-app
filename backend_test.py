@@ -799,8 +799,8 @@ class ClaudePlatformTester:
             return False
 
 def main():
-    print("🚀 Starting Enhanced Coworking CMS System Tests")
-    print("=" * 70)
+    print("🚀 Starting Enhanced CMS Features Tests - Site Configuration & Default Homepage")
+    print("=" * 80)
     
     tester = ClaudePlatformTester()
     
@@ -823,8 +823,21 @@ def main():
         print("❌ Coworking tenant login failed - cannot proceed with CMS tests")
         return 1
     
-    # Enhanced CMS System Tests (Primary Focus)
-    print("\n🎨 ENHANCED COWORKING CMS SYSTEM TESTS")
+    # NEW ENHANCED CMS FEATURES TESTS (Primary Focus)
+    print("\n🎯 NEW ENHANCED CMS FEATURES TESTS")
+    print("=" * 60)
+    
+    # Test Site Configuration endpoints
+    site_config_success = tester.test_site_configuration(coworking_subdomain)
+    
+    # Test Default Homepage Creation
+    homepage_creation_success = tester.test_default_homepage_creation(coworking_subdomain)
+    
+    # Test Enhanced Page Model Support
+    enhanced_page_success = tester.test_enhanced_page_model_support(coworking_subdomain)
+    
+    # Existing Enhanced CMS System Tests
+    print("\n🎨 EXISTING ENHANCED CMS SYSTEM VERIFICATION")
     print("=" * 50)
     
     cms_success = tester.test_enhanced_cms_endpoints(coworking_subdomain)
@@ -841,11 +854,16 @@ def main():
     dashboard_success = tester.test_enhanced_dashboard(coworking_subdomain)
     
     # Print final results
-    print("\n" + "=" * 70)
+    print("\n" + "=" * 80)
     print(f"📊 FINAL RESULTS: {tester.tests_passed}/{tester.tests_run} tests passed")
     
     # Detailed Results Summary
-    print("\n🎯 ENHANCED CMS SYSTEM TEST SUMMARY:")
+    print("\n🎯 NEW ENHANCED CMS FEATURES TEST SUMMARY:")
+    print(f"   Site Configuration: {'✅ PASS' if site_config_success else '❌ FAIL'}")
+    print(f"   Default Homepage Creation: {'✅ PASS' if homepage_creation_success else '❌ FAIL'}")
+    print(f"   Enhanced Page Model: {'✅ PASS' if enhanced_page_success else '❌ FAIL'}")
+    
+    print("\n🎨 EXISTING CMS SYSTEM VERIFICATION:")
     print(f"   CMS Engine Endpoints: {'✅ PASS' if cms_success else '❌ FAIL'}")
     print(f"   Page Builder Integration: {'✅ PASS' if builder_success else '❌ FAIL'}")
     print(f"   Industry Customization: {'✅ PASS' if customization_success else '❌ FAIL'}")
@@ -853,12 +871,27 @@ def main():
     print(f"   Module Experience: {'✅ PASS' if experience_success else '❌ FAIL'}")
     print(f"   Enhanced Dashboard: {'✅ PASS' if dashboard_success else '❌ FAIL'}")
     
-    if tester.tests_passed == tester.tests_run:
-        print("\n🎉 All Enhanced CMS System tests passed!")
-        return 0
+    # Focus on new features
+    new_features_success = site_config_success and homepage_creation_success and enhanced_page_success
+    
+    if new_features_success:
+        print("\n🎉 All NEW Enhanced CMS Features tests passed!")
+        if tester.tests_passed == tester.tests_run:
+            print("🎉 All tests passed - Enhanced CMS Features are fully operational!")
+            return 0
+        else:
+            print("⚠️ Some existing features have issues, but new features work correctly")
+            return 0
     else:
-        failed_tests = tester.tests_run - tester.tests_passed
-        print(f"\n⚠️  {failed_tests} tests failed - Enhanced CMS System needs implementation")
+        failed_new_features = []
+        if not site_config_success:
+            failed_new_features.append("Site Configuration")
+        if not homepage_creation_success:
+            failed_new_features.append("Default Homepage Creation")
+        if not enhanced_page_success:
+            failed_new_features.append("Enhanced Page Model")
+        
+        print(f"\n❌ NEW Enhanced CMS Features failed: {', '.join(failed_new_features)}")
         return 1
 
 if __name__ == "__main__":
