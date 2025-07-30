@@ -341,9 +341,10 @@ class ClaudePlatformTester:
             token=token
         )
         if success2:
-            print(f"   Available themes: {len(response2)} theme options")
-            if response2:
-                theme_names = [theme.get('name') for theme in response2]
+            themes = response2.get('themes', []) if isinstance(response2, dict) else []
+            print(f"   Available themes: {len(themes)} theme options")
+            if themes:
+                theme_names = [theme.get('name') for theme in themes]
                 expected_themes = ['Modern Collaborative', 'Creative Studio', 'Professional Corporate']
                 found_themes = [t for t in expected_themes if t in theme_names]
                 print(f"   Expected themes found: {len(found_themes)}/{len(expected_themes)}")
