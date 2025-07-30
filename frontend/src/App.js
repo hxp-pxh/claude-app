@@ -9,6 +9,10 @@ import Dashboard from './pages/Dashboard';
 import Members from './pages/Members';
 import Resources from './pages/Resources';
 import Bookings from './pages/Bookings';
+import Profile from './pages/Profile';
+import CheckIn from './pages/CheckIn';
+import Events from './pages/Events';
+import Community from './pages/Community';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
@@ -43,6 +47,10 @@ function App() {
                           <Route path="/members" element={<Members />} />
                           <Route path="/resources" element={<Resources />} />
                           <Route path="/bookings" element={<Bookings />} />
+                          <Route path="/profile" element={<Profile />} />
+                          <Route path="/checkin" element={<CheckIn />} />
+                          <Route path="/events" element={<Events />} />
+                          <Route path="/community" element={<Community />} />
                         </Routes>
                       </Layout>
                     </ProtectedRoute>

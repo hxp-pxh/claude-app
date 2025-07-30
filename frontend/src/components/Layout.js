@@ -6,6 +6,10 @@ import {
   Users, 
   Building, 
   Calendar, 
+  User,
+  LogIn,
+  Calendar as CalendarIcon,
+  UserCheck,
   LogOut,
   Menu,
   X 
@@ -18,9 +22,15 @@ const Layout = ({ children }) => {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Members', href: '/members', icon: Users },
+    ...(user?.role !== 'member' ? [
+      { name: 'Members', href: '/members', icon: Users },
+    ] : []),
     { name: 'Resources', href: '/resources', icon: Building },
     { name: 'Bookings', href: '/bookings', icon: Calendar },
+    { name: 'Check-In', href: '/checkin', icon: LogIn },
+    { name: 'Events', href: '/events', icon: CalendarIcon },
+    { name: 'Community', href: '/community', icon: UserCheck },
+    { name: 'Profile', href: '/profile', icon: User },
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -90,7 +100,10 @@ const Layout = ({ children }) => {
                 <p className="text-sm font-medium text-gray-900">
                   {user?.first_name} {user?.last_name}
                 </p>
-                <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+                <p className="text-xs text-gray-500 capitalize">
+                  {user?.membership_tier && `${user.membership_tier} • `}
+                  {user?.role?.replace('_', ' ')}
+                </p>
               </div>
             </div>
             <button
