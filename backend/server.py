@@ -351,23 +351,26 @@ def require_role(required_roles: List[UserRole]):
     async def role_checker(current_user: User = Depends(get_current_user)):
         core = await get_platform_core(db)
         
+        # Convert user role to string if it's an enum
+        user_role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+        
         # Check permission using identity kernel
         has_permission = await core.check_user_permission(
             current_user.tenant_id, 
             current_user.id, 
-            f"role.{current_user.role}"
+            f"role.{user_role_str}"
         )
         
         # Convert UserRole enums to strings for comparison
         required_role_strings = [role.value for role in required_roles]
         
         # Debug logging
-        print(f"DEBUG: User role: {current_user.role}")
+        print(f"DEBUG: User role: {user_role_str}")
         print(f"DEBUG: Required roles: {required_role_strings}")
         print(f"DEBUG: Has permission: {has_permission}")
-        print(f"DEBUG: Role in required: {current_user.role in required_role_strings}")
+        print(f"DEBUG: Role in required: {user_role_str in required_role_strings}")
         
-        if not has_permission or current_user.role not in required_role_strings:
+        if not has_permission or user_role_str not in required_role_strings:
             raise HTTPException(status_code=403, detail="Insufficient permissions")
         return current_user
     return role_checker
