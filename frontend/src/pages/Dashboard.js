@@ -36,6 +36,16 @@ const Dashboard = () => {
   const colorScheme = getColorScheme();
   const moduleInfo = getModuleInfo();
 
+  // Debug logging
+  React.useEffect(() => {
+    console.log('📊 Dashboard: Module data received', {
+      moduleInfo,
+      dashboardConfig,
+      colorScheme,
+      moduleLoading
+    });
+  }, [moduleInfo, dashboardConfig, colorScheme, moduleLoading]);
+
   // Extract and translate stats from the enhanced dashboard response
   const stats = dashboardData ? translateObject({
     total_leads: dashboardData.metrics?.total_leads || 0,
