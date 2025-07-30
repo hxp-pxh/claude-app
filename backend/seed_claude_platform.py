@@ -77,13 +77,61 @@ async def seed_claude_platform():
             "industry_module": "hotel",
             "preview_image": "/images/templates/hotel-luxury.jpg",
             "layout_config": {
-                "primary_color": "#7C2D12",
-                "secondary_color": "#92400E",
+                "primary_color": "#DC2626",
+                "secondary_color": "#B91C1C",
                 "font_family": "Playfair Display"
             },
             "default_content": {
-                "hero_title": "Executive Meeting Spaces",
-                "hero_subtitle": "Professional venues for your business events"
+                "hero_title": "Executive Meeting Venues",
+                "hero_subtitle": "Where business meets luxury"
+            },
+            "is_active": True
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "name": "University Academic",
+            "industry_module": "university",
+            "preview_image": "/images/templates/university-academic.jpg",
+            "layout_config": {
+                "primary_color": "#7C3AED",
+                "secondary_color": "#6D28D9",
+                "font_family": "Source Serif Pro"
+            },
+            "default_content": {
+                "hero_title": "Campus Resource Center",
+                "hero_subtitle": "Book study spaces and facilities for academic success"
+            },
+            "is_active": True
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "name": "Creative Studio",
+            "industry_module": "creative_studio",
+            "preview_image": "/images/templates/creative-studio.jpg",
+            "layout_config": {
+                "primary_color": "#EA580C",
+                "secondary_color": "#DC2626",
+                "font_family": "Montserrat"
+            },
+            "default_content": {
+                "hero_title": "Unleash Your Creative Potential",
+                "hero_subtitle": "Professional studios and creative community"
+            },
+            "is_active": True
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "name": "Residential Modern",
+            "industry_module": "residential",
+            "preview_image": "/images/templates/residential-modern.jpg",
+            "layout_config": {
+                "primary_color": "#0891B2",
+                "secondary_color": "#0E7490",
+                "font_family": "Inter"
+            },
+            "default_content": {
+                "hero_title": "Your Home, Enhanced by Community",
+                "hero_subtitle": "Modern living with premium amenities"
             },
             "is_active": True
         }
