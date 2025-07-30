@@ -493,7 +493,10 @@ class CoworkingCMSEngine(BaseKernel):
     # Site Configuration Management
     async def get_site_config(self, tenant_id: str) -> Dict[str, Any]:
         """Get site-wide configuration (navigation, footer, etc.)"""
-        config = await self.db.site_config.find_one({"tenant_id": tenant_id})
+        config = await self.db.site_config.find_one(
+            {"tenant_id": tenant_id},
+            {"_id": 0}  # Exclude ObjectId to prevent serialization issues
+        )
         
         if not config:
             # Return default configuration
