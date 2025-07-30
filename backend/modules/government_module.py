@@ -3,7 +3,7 @@ Government Module - Industry-specific experience for government facilities
 Transforms the universal platform into a public facility management solution
 """
 from typing import Dict, Any, List
-from base_module import BaseModule
+from modules.base_module import BaseModule
 
 
 class GovernmentModule(BaseModule):
