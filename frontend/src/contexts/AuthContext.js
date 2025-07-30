@@ -75,6 +75,7 @@ export const AuthProvider = ({ children }) => {
       setToken(access_token);
       setUser(newUser);
       localStorage.setItem('token', access_token);
+      localStorage.setItem('user', JSON.stringify(newUser));
       localStorage.setItem('tenant_subdomain', tenantSubdomain);
       api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       
