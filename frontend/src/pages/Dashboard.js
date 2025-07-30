@@ -155,10 +155,10 @@ const Dashboard = () => {
 
   // Fallback dashboard if no module config is available
   const fallbackStats = [
-    { name: translateTerm('Total Users'), value: stats?.active_users || stats?.active_members || stats?.citizen_reservations || 0, icon: Users, change: '+12%' },
-    { name: translateTerm('Active Bookings'), value: stats?.total_bookings || 0, icon: Calendar, change: '+5%' },
-    { name: translateTerm('Website Pages'), value: stats?.total_pages || 0, icon: FileText, change: '0%' },
-    { name: translateTerm('Conversion Rate'), value: `${stats?.conversion_rate || 0}%`, icon: TrendingUp, change: '+8%' },
+    { name: translateTerm('users'), value: stats?.active_users || stats?.active_members || stats?.citizen_reservations || 0, icon: Users, change: '+12%' },
+    { name: translateTerm('bookings'), value: stats?.total_bookings || 0, icon: Calendar, change: '+5%' },
+    { name: translateTerm('pages'), value: stats?.total_pages || 0, icon: FileText, change: '0%' },
+    { name: translateTerm('conversion_rate'), value: `${stats?.conversion_rate || 0}%`, icon: TrendingUp, change: '+8%' },
   ];
 
   return (
