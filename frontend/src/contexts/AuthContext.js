@@ -93,6 +93,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setToken(null);
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     localStorage.removeItem('tenant_subdomain');
     delete api.defaults.headers.common['Authorization'];
     navigate('/login');
