@@ -5,12 +5,12 @@ from typing import Dict, Any, Optional, List
 from motor.motor_asyncio import AsyncIOMotorDatabase
 import os
 
-from .kernels import (
+from kernels import (
     IdentityKernel, BookingKernel, FinancialKernel, 
     CMSKernel, CommunicationKernel
 )
-from .modules import BaseModule
-from .modules.module_registry import load_tenant_module
+from modules import BaseModule
+from modules.module_registry import load_tenant_module
 
 
 class ClaudePlatformCore:
