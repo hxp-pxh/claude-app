@@ -22,18 +22,17 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       // Set token in API instance
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      // Try to get user info
-      api.get('/users/me')
-        .then(response => {
-          setUser(response.data);
-        })
-        .catch(() => {
-          // Token invalid, clear it
+      // Check if we have user data in localStorage
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (error) {
+          console.error('Error parsing stored user data:', error);
           logout();
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+        }
+      }
+      setLoading(false);
     } else {
       setLoading(false);
     }
