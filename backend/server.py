@@ -412,7 +412,7 @@ async def update_user_profile(
     updated_user = await db.users.find_one({"id": current_user.id})
     return User(**updated_user)
 
-@api_router.get("/users/directory", response_model=List[User])
+@api_router.get("/users/directory")
 async def get_member_directory(
     current_user: User = Depends(get_current_user)
 ):
@@ -424,14 +424,24 @@ async def get_member_directory(
         "profile.open_to_connect": True
     }).to_list(1000)
     
-    # Filter sensitive information
+    # Create filtered user objects without sensitive information
     filtered_users = []
     for user in users:
-        user_obj = User(**user)
-        # Remove sensitive fields for directory
-        user_dict = user_obj.dict()
-        user_dict.pop("email", None)
-        filtered_users.append(User(**user_dict))
+        # Create a copy and remove sensitive fields
+        user_data = dict(user)
+        user_data.pop("email", None)  # Remove email for privacy
+        
+        # Create a simplified user dict
+        filtered_user = {
+            "id": user_data.get("id"),
+            "first_name": user_data.get("first_name"),
+            "last_name": user_data.get("last_name"),
+            "role": user_data.get("role"),
+            "membership_tier": user_data.get("membership_tier"),
+            "profile": user_data.get("profile", {}),
+            "created_at": user_data.get("created_at")
+        }
+        filtered_users.append(filtered_user)
     
     return filtered_users
 
