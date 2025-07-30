@@ -139,6 +139,24 @@ const SiteConfigurationWidget = ({ isOpen, onClose }) => {
     }
   };
 
+  const handleImageUpload = (event, type) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Convert image to base64
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64 = e.target.result;
+      
+      if (type === 'logo') {
+        updateConfig('branding', 'logo_url', base64);
+      } else if (type === 'favicon') {
+        updateConfig('branding', 'favicon_url', base64);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const updateConfig = (section, field, value) => {
     setConfig(prev => ({
       ...prev,
