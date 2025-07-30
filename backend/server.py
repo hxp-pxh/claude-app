@@ -1214,6 +1214,50 @@ async def render_page_with_blocks(
         "theme_config": theme_config
     }
 
+# Site Configuration Routes
+@api_router.get("/cms/site-config")
+async def get_site_config(
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER]))
+):
+    """Get site-wide configuration (navigation, footer, etc.)"""
+    cms_engine = CoworkingCMSEngine(db)
+    config = await cms_engine.get_site_config(current_user.tenant_id)
+    return {"config": config}
+
+@api_router.post("/cms/site-config")
+async def save_site_config(
+    config_data: Dict[str, Any],
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER]))
+):
+    """Save site-wide configuration"""
+    cms_engine = CoworkingCMSEngine(db)
+    
+    success = await cms_engine.save_site_config(current_user.tenant_id, config_data)
+    
+    if success:
+        return {"message": "Site configuration saved successfully"}
+    else:
+        raise HTTPException(status_code=500, detail="Failed to save site configuration")
+
+# Default Homepage Creation
+@api_router.post("/cms/create-default-homepage")
+async def create_default_homepage(
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER]))
+):
+    """Create a default homepage with premade template"""
+    cms_engine = CoworkingCMSEngine(db)
+    
+    try:
+        page_id = await cms_engine.create_default_homepage(current_user.tenant_id)
+        return {
+            "message": "Default homepage created successfully",
+            "page_id": page_id,
+            "homepage_url": f"/pages/{page_id}"
+        }
+    except Exception as e:
+        print(f"Error creating default homepage: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to create default homepage")
+
 # Include the router in the main app
 app.include_router(api_router)
 
