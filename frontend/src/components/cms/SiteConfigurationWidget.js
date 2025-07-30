@@ -23,6 +23,7 @@ const SiteConfigurationWidget = ({ isOpen, onClose }) => {
   const { getColorScheme, translateTerm } = useTenant();
   const [activeTab, setActiveTab] = useState('navigation');
   const [config, setConfig] = useState(null);
+  const [domainConfig, setDomainConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [previewMode, setPreviewMode] = useState('desktop');
