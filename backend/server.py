@@ -331,19 +331,21 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
-    try:
-        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: str = payload.get("sub")
-        if user_id is None:
-            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
-    except jwt.PyJWTError:
+    """Get current user using identity kernel"""
+    core = await get_platform_core(db)
+    identity_kernel = core.get_kernel('identity')
+    
+    # Verify token
+    user_id = await identity_kernel.verify_token(credentials.credentials)
+    if not user_id:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
     
-    user = await db.users.find_one({"id": user_id})
-    if user is None:
+    # Get user
+    user_data = await identity_kernel.get_user_by_id(user_id)
+    if not user_data:
         raise HTTPException(status_code=401, detail="User not found")
     
-    return User(**user)
+    return User(**user_data)
 
 def require_role(required_roles: List[UserRole]):
     def role_checker(current_user: User = Depends(get_current_user)):
