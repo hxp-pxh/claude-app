@@ -2,6 +2,355 @@
 @tailwind components;
 @tailwind utilities;
 
+/* AdminJS-inspired custom styles */
+:root {
+  --admin-primary: #3040D6;
+  --admin-primary-light: #4C63D2;
+  --admin-primary-dark: #1E2A78;
+  --admin-secondary: #F8FAFC;
+  --admin-success: #22C55E;
+  --admin-warning: #F59E0B;
+  --admin-error: #EF4444;
+  --admin-info: #3B82F6;
+  --admin-gray-50: #F9FAFB;
+  --admin-gray-100: #F3F4F6;
+  --admin-gray-900: #111827;
+  --admin-sidebar-bg: #1F2937;
+  --admin-border: #E5E7EB;
+}
+
+/* AdminJS Button Styles */
+.admin-btn-primary {
+  @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
+  background-color: var(--admin-primary);
+}
+
+.admin-btn-primary:hover {
+  background-color: var(--admin-primary-dark);
+}
+
+.admin-btn-primary:focus {
+  --tw-ring-color: var(--admin-primary);
+}
+
+.admin-btn-secondary {
+  @apply inline-flex items-center justify-center px-4 py-2 border text-sm font-medium rounded-md text-gray-700 bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
+  border-color: var(--admin-border);
+}
+
+.admin-btn-secondary:hover {
+  background-color: var(--admin-gray-50);
+}
+
+.admin-btn-secondary:focus {
+  --tw-ring-color: var(--admin-primary);
+}
+
+/* AdminJS Card Styles */
+.admin-card {
+  @apply bg-white rounded-lg shadow-sm border;
+  border-color: var(--admin-border);
+}
+
+.admin-card:hover {
+  @apply shadow-md;
+}
+
+.admin-card-header {
+  @apply px-6 py-4 border-b;
+  border-color: var(--admin-border);
+}
+
+.admin-card-body {
+  @apply px-6 py-4;
+}
+
+/* AdminJS Input Styles */
+.admin-input {
+  @apply block w-full px-3 py-2 border rounded-md text-sm placeholder-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0;
+  border-color: var(--admin-border);
+}
+
+.admin-input:focus {
+  --tw-ring-color: var(--admin-primary);
+  border-color: var(--admin-primary);
+}
+
+.admin-select {
+  @apply block w-full px-3 py-2 border rounded-md text-sm bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0;
+  border-color: var(--admin-border);
+}
+
+.admin-select:focus {
+  --tw-ring-color: var(--admin-primary);
+  border-color: var(--admin-primary);
+}
+
+/* AdminJS Table Styles */
+.admin-table {
+  @apply min-w-full divide-y;
+  --tw-divide-opacity: 1;
+  divide-color: var(--admin-border);
+}
+
+.admin-table-header {
+  background-color: var(--admin-gray-50);
+}
+
+.admin-table-header-cell {
+  @apply px-6 py-3 text-left text-xs font-medium uppercase tracking-wider;
+  color: var(--admin-gray-900);
+}
+
+.admin-table-body {
+  @apply bg-white divide-y;
+  --tw-divide-opacity: 1;
+  divide-color: var(--admin-border);
+}
+
+.admin-table-row:hover {
+  background-color: var(--admin-gray-50);
+}
+
+.admin-table-cell {
+  @apply px-6 py-4 whitespace-nowrap text-sm;
+}
+
+/* AdminJS Sidebar Styles */
+.admin-sidebar {
+  @apply fixed inset-y-0 left-0 z-50 w-64 transition-transform transform -translate-x-full lg:translate-x-0;
+  background-color: var(--admin-sidebar-bg);
+}
+
+.admin-sidebar-item {
+  @apply group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors;
+  color: #9CA3AF;
+}
+
+.admin-sidebar-item:hover {
+  @apply bg-gray-800 text-white;
+}
+
+.admin-sidebar-item-active {
+  @apply group flex items-center px-2 py-2 text-sm font-medium rounded-md text-white;
+  background-color: var(--admin-primary);
+}
+
+/* AdminJS Badge Styles */
+.admin-badge-success {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  background-color: #DCFCE7;
+  color: #166534;
+}
+
+.admin-badge-warning {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  background-color: #FEF3C7;
+  color: #92400E;
+}
+
+.admin-badge-error {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  background-color: #FEE2E2;
+  color: #991B1B;
+}
+
+.admin-badge-info {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  background-color: #DBEAFE;
+  color: #1E40AF;
+}
+
+.admin-badge-gray {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  background-color: var(--admin-gray-100);
+  color: var(--admin-gray-900);
+}
+
+/* AdminJS Page Layout */
+.admin-page {
+  min-height: 100vh;
+  background-color: var(--admin-secondary);
+}
+
+.admin-main-content {
+  @apply flex-1 lg:ml-64;
+}
+
+.admin-header {
+  @apply bg-white shadow-sm border-b sticky top-0 z-30;
+  border-color: var(--admin-border);
+}
+
+.admin-content {
+  @apply p-6;
+}
+
+/* AdminJS Loading Spinner */
+.admin-spinner {
+  @apply animate-spin rounded-full border-b-2;
+  border-color: var(--admin-primary);
+}
+
+/* AdminJS Empty State */
+.admin-empty-state {
+  @apply text-center py-12;
+}
+
+.admin-empty-state-icon {
+  @apply mx-auto h-12 w-12 text-gray-400;
+}
+
+.admin-empty-state-title {
+  @apply mt-2 text-sm font-medium text-gray-900;
+}
+
+.admin-empty-state-description {
+  @apply mt-1 text-sm text-gray-500;
+}
+
+/* AdminJS Alert Styles */
+.admin-alert {
+  @apply rounded-md border p-4;
+}
+
+.admin-alert-success {
+  background-color: #F0FDF4;
+  border-color: #BBF7D0;
+  color: #166534;
+}
+
+.admin-alert-warning {
+  background-color: #FFFBEB;
+  border-color: #FDE68A;
+  color: #92400E;
+}
+
+.admin-alert-error {
+  background-color: #FEF2F2;
+  border-color: #FECACA;
+  color: #991B1B;
+}
+
+.admin-alert-info {
+  background-color: #EFF6FF;
+  border-color: #BFDBFE;
+  color: #1E40AF;
+}
+
+/* Custom scrollbar for AdminJS */
+.admin-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.admin-scrollbar::-webkit-scrollbar-track {
+  background: var(--admin-gray-100);
+  border-radius: 3px;
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--admin-primary);
+  border-radius: 3px;
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--admin-primary-dark);
+}
+
+/* Smooth transitions */
+* {
+  @apply transition-colors duration-150 ease-in-out;
+}
+
+/* Focus styles consistent with AdminJS */
+*:focus {
+  outline: 2px solid var(--admin-primary);
+  outline-offset: 2px;
+}
+
+/* AdminJS form validation styles */
+.admin-form-error {
+  @apply text-sm text-red-600 mt-1;
+}
+
+.admin-form-help {
+  @apply text-sm text-gray-500 mt-1;
+}
+
+/* AdminJS typography improvements */
+.admin-heading-1 {
+  @apply text-3xl font-bold text-gray-900;
+}
+
+.admin-heading-2 {
+  @apply text-2xl font-semibold text-gray-900;
+}
+
+.admin-heading-3 {
+  @apply text-lg font-medium text-gray-900;
+}
+
+.admin-heading-4 {
+  @apply text-base font-medium text-gray-900;
+}
+
+.admin-body-text {
+  @apply text-sm text-gray-700;
+}
+
+.admin-caption-text {
+  @apply text-xs text-gray-500;
+}
+
+/* AdminJS responsive utilities */
+@media (max-width: 1024px) {
+  .admin-sidebar {
+    @apply -translate-x-full;
+  }
+  
+  .admin-main-content {
+    @apply ml-0;
+  }
+}
+
+/* AdminJS hover effects */
+.admin-hover-lift:hover {
+  @apply transform -translate-y-1 shadow-lg;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.admin-hover-scale:hover {
+  @apply transform scale-105;
+  transition: transform 0.2s ease-in-out;
+}
+
+/* AdminJS grid layouts */
+.admin-grid-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.admin-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.admin-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.admin-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+@media (min-width: 768px) {
+  .admin-grid-md-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-grid-md-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .admin-grid-md-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1024px) {
+  .admin-grid-lg-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .admin-grid-lg-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* AdminJS dark mode support (future) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --admin-secondary: #1F2937;
+    --admin-gray-50: #374151;
+    --admin-gray-100: #4B5563;
+    --admin-border: #374151;
+  }
+}
+
 body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
