@@ -18,6 +18,9 @@ import json
 # Import the new core platform
 from claude_platform_core import initialize_platform, get_platform_core
 
+# Import Enhanced CMS Engine
+from cms_engine.coworking_cms import CoworkingCMSEngine
+
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
