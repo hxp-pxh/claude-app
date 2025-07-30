@@ -473,9 +473,10 @@ class ClaudePlatformTester:
         
         if success1 and response1:
             # Check for coworking-specific terminology in block descriptions
+            blocks = response1.get('blocks', []) if isinstance(response1, dict) else []
             coworking_terms = ['community', 'member', 'coworking', 'collaboration', 'workspace']
             found_terms = []
-            for block in response1:
+            for block in blocks:
                 description = block.get('description', '').lower()
                 for term in coworking_terms:
                     if term in description:
