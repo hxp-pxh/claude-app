@@ -36,9 +36,18 @@ function App() {
           <AuthProvider>
             <TenantProvider>
               <Routes>
+                {/* Public Routes */}
+                <Route path="/public" element={<PublicHomepage />} />
+                <Route path="/public/:subdomain" element={<PublicHomepage />} />
+                
+                {/* Auth Routes */}
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                
+                {/* Default Route - Redirect to Public Homepage */}
+                <Route path="/" element={<Navigate to="/public/downtown-hub" replace />} />
+                
+                {/* Protected Admin Routes */}
                 <Route
                   path="/*"
                   element={
