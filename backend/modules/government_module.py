@@ -121,7 +121,7 @@ class GovernmentModule(BaseModule):
             {
                 "name": "public_notice",
                 "trigger_event": "event_published",
-                "conditions": [{"field": "public_notice_required", "value": true}],
+                "conditions": [{"field": "public_notice_required", "value": True}],
                 "actions": [
                     {
                         "type": "webhook",
