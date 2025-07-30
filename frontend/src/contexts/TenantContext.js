@@ -63,8 +63,25 @@ export const TenantProvider = ({ children }) => {
 
   // Load module config when user changes
   useEffect(() => {
+    console.log('🔄 TenantContext: useEffect triggered', { isAuthenticated, userTenantId: user?.tenant_id });
     loadModuleConfig();
   }, [isAuthenticated, user?.tenant_id]);
+
+  // Debug: Log module config when it changes
+  useEffect(() => {
+    if (moduleConfig) {
+      console.log('🎨 TenantContext: Module config loaded successfully!', {
+        moduleName: moduleConfig.module_info?.name,
+        industry: moduleConfig.module_info?.industry,
+        terminologyCount: Object.keys(moduleConfig.terminology || {}).length,
+        featuresCount: moduleConfig.features?.length || 0,
+        navigationCount: moduleConfig.navigation?.length || 0
+      });
+      
+      // Make available for debugging
+      window.moduleConfigForDebugging = moduleConfig;
+    }
+  }, [moduleConfig]);
 
   // Translate term using module terminology
   const translateTerm = (term) => {
