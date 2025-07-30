@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import json
 
 class ClaudePlatformTester:
-    def __init__(self, base_url="https://97977e23-90a3-4486-9cbe-8b5f397a2e68.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://f34678c8-0dd8-48eb-b632-746c0874d7b6.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0
