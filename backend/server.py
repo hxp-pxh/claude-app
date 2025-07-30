@@ -1080,6 +1080,140 @@ async def reload_tenant_module(
     await core.reload_tenant_module(current_user.tenant_id)
     return {"message": "Module reloaded successfully"}
 
+# Enhanced CMS System Routes
+@api_router.get("/cms/coworking/blocks")
+async def get_coworking_blocks(
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER]))
+):
+    """Get available content blocks for coworking spaces"""
+    cms_engine = CoworkingCMSEngine(db)
+    blocks = cms_engine.get_coworking_content_blocks()
+    return {"blocks": blocks}
+
+@api_router.get("/cms/coworking/themes")
+async def get_coworking_themes(
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER]))
+):
+    """Get available themes for coworking spaces"""
+    cms_engine = CoworkingCMSEngine(db)
+    themes = cms_engine.get_coworking_themes()
+    return {"themes": themes}
+
+@api_router.get("/cms/coworking/page-templates")
+async def get_coworking_page_templates(
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER]))
+):
+    """Get page templates for coworking spaces"""
+    cms_engine = CoworkingCMSEngine(db)
+    templates = cms_engine.get_coworking_page_templates()
+    return {"templates": templates}
+
+@api_router.post("/cms/pages/{page_id}/builder")
+async def save_page_builder_data(
+    page_id: str,
+    blocks_data: Dict[str, Any],
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER]))
+):
+    """Save page builder configuration"""
+    cms_engine = CoworkingCMSEngine(db)
+    
+    # Validate page exists and belongs to tenant
+    page = await db.pages.find_one({
+        "id": page_id,
+        "tenant_id": current_user.tenant_id
+    })
+    if not page:
+        raise HTTPException(status_code=404, detail="Page not found")
+    
+    success = await cms_engine.save_page_builder_data(
+        current_user.tenant_id, 
+        page_id, 
+        blocks_data.get("blocks", [])
+    )
+    
+    if success:
+        return {"message": "Page builder data saved successfully", "page_id": page_id}
+    else:
+        raise HTTPException(status_code=500, detail="Failed to save page builder data")
+
+@api_router.get("/cms/pages/{page_id}/builder")
+async def get_page_builder_data(
+    page_id: str,
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER]))
+):
+    """Get page builder configuration"""
+    cms_engine = CoworkingCMSEngine(db)
+    
+    # Validate page exists and belongs to tenant
+    page = await db.pages.find_one({
+        "id": page_id,
+        "tenant_id": current_user.tenant_id
+    })
+    if not page:
+        raise HTTPException(status_code=404, detail="Page not found")
+    
+    builder_data = await cms_engine.get_page_builder_data(current_user.tenant_id, page_id)
+    
+    if builder_data:
+        return {
+            "page_id": page_id,
+            "blocks": builder_data.get("blocks", []),
+            "updated_at": builder_data.get("updated_at")
+        }
+    else:
+        return {
+            "page_id": page_id,
+            "blocks": [],
+            "updated_at": None
+        }
+
+@api_router.post("/cms/pages/{page_id}/render")
+async def render_page_with_blocks(
+    page_id: str,
+    render_data: Dict[str, Any],
+    current_user: User = Depends(require_role([UserRole.ACCOUNT_OWNER, UserRole.ADMINISTRATOR, UserRole.PROPERTY_MANAGER]))
+):
+    """Render page with content blocks"""
+    cms_engine = CoworkingCMSEngine(db)
+    
+    # Validate page exists and belongs to tenant
+    page = await db.pages.find_one({
+        "id": page_id,
+        "tenant_id": current_user.tenant_id
+    })
+    if not page:
+        raise HTTPException(status_code=404, detail="Page not found")
+    
+    # Get page builder data
+    builder_data = await cms_engine.get_page_builder_data(current_user.tenant_id, page_id)
+    
+    if not builder_data:
+        raise HTTPException(status_code=404, detail="No page builder data found")
+    
+    # Render blocks
+    rendered_blocks = []
+    theme_config = render_data.get("theme_config", {})
+    
+    for block in builder_data.get("blocks", []):
+        try:
+            rendered_block = await cms_engine.render_content_block(
+                current_user.tenant_id,
+                block.get("type"),
+                block.get("config", {}),
+                theme_config
+            )
+            rendered_blocks.append(rendered_block)
+        except Exception as e:
+            # Log error but continue with other blocks
+            print(f"Error rendering block {block.get('type')}: {str(e)}")
+            continue
+    
+    return {
+        "page_id": page_id,
+        "rendered_blocks": rendered_blocks,
+        "theme_config": theme_config
+    }
+
 # Include the router in the main app
 app.include_router(api_router)
 
