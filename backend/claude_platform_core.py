@@ -110,6 +110,11 @@ class ClaudePlatformCore:
     async def check_user_permission(self, tenant_id: str, user_id: str, permission: str) -> bool:
         """Check if user has specific permission"""
         identity_kernel = self.kernels['identity']
+        
+        # First validate that user belongs to tenant
+        if not await identity_kernel.validate_tenant_access(tenant_id, user_id):
+            return False
+            
         return await identity_kernel.check_permission(user_id, permission)
     
     async def trigger_workflow(self, tenant_id: str, event: str, context: Dict[str, Any]):
