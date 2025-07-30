@@ -180,7 +180,7 @@ const SiteConfigurationWidget = ({ isOpen, onClose }) => {
       ...prev,
       navigation: {
         ...prev.navigation,
-        menu_items: prev.navigation.menu_items.map((item, i) => 
+        menu_items: (prev.navigation?.menu_items || []).map((item, i) => 
           i === index ? { ...item, [field]: value } : item
         )
       }
