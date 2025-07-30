@@ -4,7 +4,7 @@ Universal content management and website building engine
 """
 from typing import Dict, Any, List, Optional
 from datetime import datetime
-from base_kernel import BaseKernel
+from kernels.base_kernel import BaseKernel
 
 
 class CMSKernel(BaseKernel):
