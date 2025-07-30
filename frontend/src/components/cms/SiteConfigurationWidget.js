@@ -400,7 +400,7 @@ const SiteConfigurationWidget = ({ isOpen, onClose }) => {
                                 <Trash2 className="h-4 w-4" />
                               </button>
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-3 gap-3">
                               <input
                                 type="text"
                                 placeholder="Label"
@@ -415,6 +415,14 @@ const SiteConfigurationWidget = ({ isOpen, onClose }) => {
                                 onChange={(e) => updateMenuItem(index, 'url', e.target.value)}
                                 className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
                               />
+                              <select
+                                value={item.external ? 'external' : 'internal'}
+                                onChange={(e) => updateMenuItem(index, 'external', e.target.value === 'external')}
+                                className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                              >
+                                <option value="internal">Internal</option>
+                                <option value="external">External</option>
+                              </select>
                             </div>
                           </div>
                         ))}
