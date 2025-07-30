@@ -70,6 +70,16 @@ const Layout = ({ children }) => {
   const moduleInfo = getModuleInfo();
   const colorScheme = getColorScheme();
   
+  // Debug logging
+  React.useEffect(() => {
+    console.log('🖼️ Layout: Module data received', {
+      moduleInfo,
+      navigationLength: moduleNavigation.length,
+      colorScheme,
+      moduleLoading
+    });
+  }, [moduleInfo, moduleNavigation, colorScheme, moduleLoading]);
+  
   // Fallback navigation if module hasn't loaded yet
   const defaultNavigation = [
     { name: 'Dashboard', path: '/dashboard', icon: 'home', roles: ['*'] },
