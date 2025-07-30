@@ -526,7 +526,7 @@ const SiteConfigurationWidget = ({ isOpen, onClose }) => {
                     <div>
                       <h4 className="text-md font-medium mb-4">Footer Sections</h4>
                       <div className="space-y-4">
-                        {config.footer.sections.map((section, sectionIndex) => (
+                        {(config.footer.sections || []).map((section, sectionIndex) => (
                           <div key={sectionIndex} className="p-4 border border-gray-200 rounded-lg">
                             <input
                               type="text"
