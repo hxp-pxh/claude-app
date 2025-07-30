@@ -2,10 +2,10 @@
 Industry-specific modules for Claude Platform
 These modules orchestrate kernel functionality for specific industries
 """
-from base_module import BaseModule
-from coworking_module import CoworkingModule
-from government_module import GovernmentModule
-from hotel_module import HotelModule
+from modules.base_module import BaseModule
+from modules.coworking_module import CoworkingModule
+from modules.government_module import GovernmentModule
+from modules.hotel_module import HotelModule
 
 __all__ = [
     'BaseModule',
