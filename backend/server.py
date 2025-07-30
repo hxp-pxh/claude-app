@@ -273,6 +273,8 @@ class PageCreate(BaseModel):
     meta_description: Optional[str] = None
     template_id: Optional[str] = None
     is_homepage: bool = False
+    layout_settings: Optional[LayoutSettings] = None
+    seo_settings: Optional[SEOSettings] = None
 
 class PageUpdate(BaseModel):
     title: Optional[str] = None
@@ -280,6 +282,8 @@ class PageUpdate(BaseModel):
     meta_title: Optional[str] = None
     meta_description: Optional[str] = None
     status: Optional[PageStatus] = None
+    layout_settings: Optional[LayoutSettings] = None
+    seo_settings: Optional[SEOSettings] = None
 
 class FormCreate(BaseModel):
     name: str
