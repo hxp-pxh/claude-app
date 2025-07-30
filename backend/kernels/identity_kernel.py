@@ -6,7 +6,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
 import jwt
 from passlib.context import CryptContext
-from base_kernel import BaseKernel
+from kernels.base_kernel import BaseKernel
 
 
 class IdentityKernel(BaseKernel):
